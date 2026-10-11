@@ -1,0 +1,92 @@
+name: Release - Merge to Main & Tagging
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  tag-and-deploy:
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extraer Versión desde la rama Release
+        id: extract_version
+        run: |
+          # Toma el nombre exacto de la rama (ej. release/2026.08.23-1 -> 2026.08.23-1)
+          BRANCH_NAME="${{ github.head_ref }}"
+          VERSION=$(echo "$BRANCH_NAME" | sed 's#release/##')
+          
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Versión extraída: v${VERSION}"
+
+      - name: Crear Tag y Release en GitHub (Validado)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.extract_version.outputs.version }}"
+          TAG_NAME="v${VERSION}"
+
+          # Verificar si el tag ya existe
+          if gh release view "$TAG_NAME" > /dev/null 2>&1; then
+            echo "El Tag / Release $TAG_NAME ya existe. Omitiendo creación."
+          else
+            gh release create "$TAG_NAME" \
+              --target main \
+              --title "Release $TAG_NAME" \
+              --notes "Release oficial desplegada a producción desde \`${{ github.head_ref }}\`."
+
+            echo "Tag $TAG_NAME creado exitosamente."
+          fi
+
+      - name: Crear Pull Request de Sync hacia Develop (Validado)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_BRANCH="${{ github.head_ref }}"
+          VERSION="${{ steps.extract_version.outputs.version }}"
+
+          # 1. Traer los cambios más recientes de origin
+          git fetch origin develop "$RELEASE_BRANCH"
+
+          # 2. Verificar si hay commits en RELEASE que NO estén en DEVELOP
+          COMMITS_AHEAD=$(git log "origin/develop..origin/${RELEASE_BRANCH}" --oneline)
+
+          if [ -z "$COMMITS_AHEAD" ]; then
+            echo "No hay cambios pendientes entre $RELEASE_BRANCH y develop. Omitiendo PR."
+            exit 0
+          fi
+
+          # 3. Verificar si ya existe un PR abierto
+          EXISTING_PR=$(gh pr list \
+            --head "$RELEASE_BRANCH" \
+            --base develop \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -z "$EXISTING_PR" ]; then
+            gh pr create \
+              --base develop \
+              --head "$RELEASE_BRANCH" \
+              --title "Sync: $RELEASE_BRANCH → develop" \
+              --body "## Sincronización de Release a Develop
+
+              Release \`v${VERSION}\` ha sido fusionada en \`main\`.
+              Sincronización de bugfixes de vuelta a \`develop\`."
+
+            echo "PR de sincronización creado exitosamente."
+          else
+            echo "Ya existe un PR de sincronización activo (#$EXISTING_PR)."
+          fi

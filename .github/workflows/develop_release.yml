@@ -1,0 +1,95 @@
+name: Release PR Auto Create
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if commit contains #RELEASE
+        id: check_release
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          if echo "$COMMIT_MSG" | grep -q "#RELEASE"; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Commit contiene #RELEASE"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "Commit no contiene #RELEASE"
+          fi
+
+      - name: Create Release Branch
+        if: steps.check_release.outputs.release == 'true'
+        id: create_release
+        run: |
+          # Configurar identidades de Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          VERSION=$(date +%Y.%m.%d)
+          BASE_BRANCH="release/${VERSION}"
+          RELEASE_BRANCH="$BASE_BRANCH"
+          COUNTER=1
+
+          # Buscar un nombre disponible en origin
+          while git ls-remote --exit-code --heads origin "$RELEASE_BRANCH" > /dev/null 2>&1; do
+            RELEASE_BRANCH="${BASE_BRANCH}-${COUNTER}"
+            COUNTER=$((COUNTER + 1))
+          done
+
+          echo "Nombre de release disponible: ${RELEASE_BRANCH}"
+
+          # Crear la rama desde develop y subirla
+          git checkout -b "$RELEASE_BRANCH"
+          git push origin "$RELEASE_BRANCH"
+
+          # Exportar outputs
+          echo "release_branch=${RELEASE_BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request to Main
+        if: steps.check_release.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Reutilizar los outputs del paso anterior
+          RELEASE_BRANCH="${{ steps.create_release.outputs.release_branch }}"
+          VERSION="${{ steps.create_release.outputs.version }}"
+
+          EXISTING_PR=$(gh pr list \
+            --head "$RELEASE_BRANCH" \
+            --base main \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -z "$EXISTING_PR" ]; then
+            gh pr create \
+              --base main \
+              --head "$RELEASE_BRANCH" \
+              --title "Release v${VERSION} - ${RELEASE_BRANCH} → main" \
+              --body "## Release v${VERSION}
+
+              Pull Request de release desde \`${RELEASE_BRANCH}\` hacia \`main\`.
+
+              ---
+              *PR creado automáticamente por GitHub Actions*
+              *Trigger: Commit con #RELEASE en develop*"
+
+            echo "Release Pull Request creado exitosamente"
+          else
+            echo "Ya existe un Release Pull Request (#$EXISTING_PR)"
+          fi
