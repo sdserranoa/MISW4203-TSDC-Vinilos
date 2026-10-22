@@ -165,6 +165,51 @@ La aplicación se comunica con el servicio backend de Vinilos para la obtención
 
 ---
 
+## Integración Continua (CI/CD) — Pipeline de Features (`#DONE`)
+
+El repositorio implementa un flujo de integración continua automatizado mediante **GitHub Actions** para asegurar la calidad del código antes de integrarlo a la rama `develop`.
+
+### Flujo de Automatización de Features (`feature_develop.yml`)
+
+Cada vez que un desarrollador sube cambios a una rama de tipo `feature/**`, se dispara automáticamente el workflow **Feature PR Auto Create**, el cual ejecuta dos etapas secuenciales:
+
+1. **Etapa de Validación de Calidad (Prerequisito Obligatorio):**
+   - **Pruebas Unitarias:** Ejecuta `./gradlew testDebugUnitTest --continue` para asegurar que todas las pruebas locales (JUnit) pasen exitosamente.
+   - **Análisis Estático (Lint):** Ejecuta `./gradlew lintDebug` para detectar malas prácticas, problemas de compatibilidad y errores de código.
+   - **Publicación de Reportes:** Los reportes de pruebas (`HTML`/`XML`) y de Lint (`HTML`/`SARIF`) se suben como artefactos descargables del workflow en GitHub Actions.
+   - *Importante:* Si alguna prueba unitaria o regla de Lint falla, el pipeline se detiene de inmediato y **bloquea la creación del Pull Request**, protegiendo la estabilidad de `develop`.
+
+2. **Etapa de Creación del Pull Request (`#DONE`):**
+   - Si la validación de calidad pasa exitosamente, el pipeline analiza el mensaje del último commit.
+   - **Sin `#DONE`:** El pipeline valida los cambios y finaliza exitosamente, proporcionando retroalimentación continua al desarrollador durante el avance de su trabajo.
+   - **Con `#DONE`:** Indica que la historia de usuario o funcionalidad está terminada. El pipeline crea automáticamente un Pull Request desde la rama `feature/**` hacia `develop`, documentando en el cuerpo del PR que los tests y el análisis estático fueron aprobados.
+
+### Guía para Desarrolladores: Cómo usar `#DONE`
+
+1. **Crear la rama de funcionalidad desde `develop`:**
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/HU01-listar-albumes
+   ```
+
+2. **Realizar commits incrementales de desarrollo (sin `#DONE`):**
+   ```bash
+   git commit -m "feat: Implementar modelo y servicio de álbumes"
+   git push origin feature/HU01-listar-albumes
+   ```
+   *(El pipeline validará que las pruebas pasen en cada push, sin abrir aún el Pull Request).*
+
+3. **Finalizar la funcionalidad con la etiqueta `#DONE`:**
+   Cuando la funcionalidad esté completa y cuente con sus respectivas pruebas unitarias:
+   ```bash
+   git commit -m "feat: Completar interfaz y pruebas unitarias de álbumes #DONE"
+   git push origin feature/HU01-listar-albumes
+   ```
+   *(El pipeline ejecutará las pruebas y, al aprobarlas, creará automáticamente el Pull Request hacia `develop`).*
+
+---
+
 ## Contribución y Buenas Prácticas
 
 - Mantenga una estructura limpia y modular siguiendo los principios de arquitectura recomendados por Android (MVVM / Capas).
