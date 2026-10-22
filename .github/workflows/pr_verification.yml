@@ -9,7 +9,7 @@ on:
 
 jobs:
   pr-quality-check:
-    name: Run Unit & Espresso Tests
+    name: Run Unit & Compose UI Tests
     runs-on: ubuntu-latest
 
     permissions:
@@ -40,7 +40,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run Espresso Tests
+      - name: Run Jetpack Compose UI Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
@@ -61,10 +61,10 @@ jobs:
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
 
-      - name: Upload Espresso Test Report
+      - name: Upload Compose Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: espresso-test-results-pr-${{ github.event.pull_request.number }}
+          name: compose-test-results-pr-${{ github.event.pull_request.number }}
           path: app/build/reports/androidTests/connected/
           if-no-files-found: ignore

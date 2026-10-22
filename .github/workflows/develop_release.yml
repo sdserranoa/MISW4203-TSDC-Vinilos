@@ -6,8 +6,8 @@ on:
       - develop
 
 jobs:
-  test-and-espresso:
-    name: Run Unit & Espresso Tests
+  test-and-compose:
+    name: Run Unit & Compose UI Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run Espresso Tests
+      - name: Run Jetpack Compose UI Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
@@ -53,17 +53,17 @@ jobs:
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
 
-      - name: Upload Espresso Test Report
+      - name: Upload Compose Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: espresso-test-results-develop
+          name: compose-test-results-develop
           path: app/build/reports/androidTests/connected/
           if-no-files-found: ignore
 
   create-release:
     name: Create Release Branch & PR
-    needs: test-and-espresso
+    needs: test-and-compose
     runs-on: ubuntu-latest
 
     permissions:
@@ -143,7 +143,7 @@ jobs:
 
               ## Calidad y Pruebas
               - Pruebas unitarias ejecutadas y aprobadas en \`develop\`
-              - Pruebas instrumentadas (Espresso) ejecutadas y aprobadas en emulador
+              - Pruebas de UI (Jetpack Compose Testing) ejecutadas y aprobadas en emulador
 
               ---
               *PR creado automáticamente por GitHub Actions*
