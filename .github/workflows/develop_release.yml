@@ -6,8 +6,8 @@ on:
       - develop
 
 jobs:
-  test-and-lint:
-    name: Run Unit Tests & Lint
+  test-and-compose:
+    name: Run Unit & Compose UI Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -20,9 +20,6 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -32,10 +29,23 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --continue
 
-      - name: Run Android Lint
-        run: ./gradlew lintDebug
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-      - name: Upload Test Report
+      - name: Run Jetpack Compose UI Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: pixel
+          disable-animations: true
+          script: ./gradlew connectedAndroidTest
+
+      - name: Upload Unit Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -43,19 +53,17 @@ jobs:
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
 
-      - name: Upload Lint Report
+      - name: Upload Compose Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lint-results-develop
-          path: |
-            app/build/reports/lint-results-debug.html
-            app/build/reports/lint-results-debug.sarif
+          name: compose-test-results-develop
+          path: app/build/reports/androidTests/connected/
           if-no-files-found: ignore
 
   create-release:
     name: Create Release Branch & PR
-    needs: test-and-lint
+    needs: test-and-compose
     runs-on: ubuntu-latest
 
     permissions:
@@ -115,7 +123,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Reutilizar los outputs del paso anterior
           RELEASE_BRANCH="${{ steps.create_release.outputs.release_branch }}"
           VERSION="${{ steps.create_release.outputs.version }}"
 
@@ -136,11 +143,11 @@ jobs:
 
               ## Calidad y Pruebas
               - Pruebas unitarias ejecutadas y aprobadas en \`develop\`
-              - Análisis estático (Lint) verificado sin errores
+              - Pruebas de UI (Jetpack Compose Testing) ejecutadas y aprobadas en emulador
 
               ---
               *PR creado automáticamente por GitHub Actions*
-              *Trigger: Commit con #RELEASE en develop*"
+              *Trigger: Commit con #RELEASE en develop y pruebas aprobadas*"
 
             echo "Release Pull Request creado exitosamente"
           else

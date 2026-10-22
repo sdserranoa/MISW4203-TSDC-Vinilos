@@ -9,7 +9,7 @@ on:
 
 jobs:
   pr-quality-check:
-    name: Run Unit Tests & Lint
+    name: Run Unit & Compose UI Tests
     runs-on: ubuntu-latest
 
     permissions:
@@ -25,9 +25,6 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -37,13 +34,26 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --continue
 
-      - name: Run Android Lint
-        run: ./gradlew lintDebug
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Jetpack Compose UI Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: pixel
+          disable-animations: true
+          script: ./gradlew connectedAndroidTest
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload Test Report
+      - name: Upload Unit Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -51,12 +61,10 @@ jobs:
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
 
-      - name: Upload Lint Report
+      - name: Upload Compose Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lint-results-pr-${{ github.event.pull_request.number }}
-          path: |
-            app/build/reports/lint-results-debug.html
-            app/build/reports/lint-results-debug.sarif
+          name: compose-test-results-pr-${{ github.event.pull_request.number }}
+          path: app/build/reports/androidTests/connected/
           if-no-files-found: ignore
