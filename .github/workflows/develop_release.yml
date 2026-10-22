@@ -6,7 +6,56 @@ on:
       - develop
 
 jobs:
+  test-and-lint:
+    name: Run Unit Tests & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --continue
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results-develop
+          path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
+
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results-develop
+          path: |
+            app/build/reports/lint-results-debug.html
+            app/build/reports/lint-results-debug.sarif
+          if-no-files-found: ignore
+
   create-release:
+    name: Create Release Branch & PR
+    needs: test-and-lint
     runs-on: ubuntu-latest
 
     permissions:
@@ -85,6 +134,10 @@ jobs:
 
               Pull Request de release desde \`${RELEASE_BRANCH}\` hacia \`main\`.
 
+              ## Calidad y Pruebas
+              - Pruebas unitarias ejecutadas y aprobadas en \`develop\`
+              - Análisis estático (Lint) verificado sin errores
+
               ---
               *PR creado automáticamente por GitHub Actions*
               *Trigger: Commit con #RELEASE en develop*"
@@ -93,4 +146,3 @@ jobs:
           else
             echo "Ya existe un Release Pull Request (#$EXISTING_PR)"
           fi
-          #test 1
