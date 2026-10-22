@@ -21,7 +21,7 @@ Este proyecto se desarrolla como una aplicación nativa para Android, utilizando
 - **JDK 25**: Entorno Java requerido para ejecutar Gradle y el daemon de compilación (configurado en `gradle/gradle-daemon-jvm.properties`).
 - **Frameworks de Pruebas**:
   - **JUnit 4**: Pruebas unitarias locales ejecutadas en la JVM del host.
-  - **Jetpack Compose Testing (`androidx.compose.ui.test`)**: Pruebas de interfaz de usuario con APIs semánticas y reglas de prueba (`createComposeRule`).
+  - **Jetpack Compose Testing (`androidx.compose.ui.test`) + Robolectric**: Pruebas de interfaz de usuario ejecutadas directamente en la JVM sin emulador, permitiendo una ejecución ultra rápida en desarrollo y CI/CD.
 - **API REST**: Servicio remoto para la consulta y gestión de datos de la aplicación.
 
 ---
@@ -52,13 +52,11 @@ MISW4203-TSDC-Vinilos/
 │   │   │   │   └── model/
 │   │   │   ├── res/
 │   │   │   └── AndroidManifest.xml
-│   │   ├── test/                   # Pruebas Unitarias (JVM / JUnit)
+│   │   ├── test/                   # Pruebas Unitarias y Compose UI (JVM / Robolectric)
 │   │   │   └── java/com/example/misw4203_tsdc_vinilos/
-│   │   │       └── ExampleUnitTest.kt
-│   │   └── androidTest/            # Pruebas de UI (Jetpack Compose Testing)
-│   │       └── java/com/example/misw4203_tsdc_vinilos/
-│   │           ├── ExampleInstrumentedTest.kt
-│   │           └── GreetingComposeTest.kt
+│   │   │       ├── ExampleUnitTest.kt
+│   │   │       └── GreetingComposeTest.kt
+│   │   └── androidTest/            # Pruebas instrumentadas (opcional en dispositivo)
 │   └── build.gradle.kts
 ├── gradle/
 │   ├── wrapper/
@@ -81,8 +79,7 @@ MISW4203-TSDC-Vinilos/
 - **`data/`**: Capa de datos, clientes de red y repositorios encargados de consumir la API REST.
 - **`model/`**: Clases de datos que representan las entidades del dominio (Álbum, Artista, Músico, etc.).
 - **`res/`**: Recursos estáticos de Android (iconos, imágenes, cadenas de texto y temas XML).
-- **`src/test/`**: Pruebas unitarias que se ejecutan localmente en la máquina de desarrollo sobre la JVM sin requerir emulador.
-- **`src/androidTest/`**: Pruebas de interfaz de usuario de Jetpack Compose (`GreetingComposeTest`) que se ejecutan en un emulador Android.
+- **`src/test/`**: Contiene tanto las pruebas unitarias como las pruebas de interfaz de Jetpack Compose (`GreetingComposeTest.kt`), las cuales se ejecutan sobre la JVM utilizando **Robolectric** en cuestión de segundos sin requerir emulador.
 
 ---
 
@@ -94,7 +91,6 @@ Para desarrollar, compilar y ejecutar el proyecto localmente, asegúrese de cont
 2. **JDK 25** instalado y configurado en el sistema y en Android Studio para Gradle.
 3. **Android SDK** con las plataformas y herramientas de compilación compatibles (API 37).
 4. **Git** para el control de versiones.
-5. Un **Emulador Android** configurado (AVD) o un dispositivo físico con depuración USB habilitada.
 
 > **Nota:** El proyecto incluye Gradle Wrapper (`gradlew`) y el archivo `gradle/gradle-daemon-jvm.properties` configurado específicamente para utilizar **JDK 25**.
 
@@ -156,12 +152,9 @@ Si prefiere utilizar la línea de comandos, puede verificar la compilación ejec
 
 ## Ejecución de Pruebas
 
-El proyecto cuenta con dos suites de pruebas automatizadas:
+Tanto las **pruebas unitarias** como las **pruebas de interfaz de usuario de Jetpack Compose** se ejecutan directamente en la JVM del host sin necesidad de encender un emulador:
 
-### 1. Pruebas Unitarias (Locales / JVM)
-Se ejecutan sobre la JVM del equipo sin necesidad de emulador. Se ubican en `app/src/test/`.
-
-- **En Windows:**
+- **En Windows (PowerShell / CMD):**
   ```powershell
   .\gradlew.bat testDebugUnitTest
   ```
@@ -169,20 +162,9 @@ Se ejecutan sobre la JVM del equipo sin necesidad de emulador. Se ubican en `app
   ```bash
   ./gradlew testDebugUnitTest
   ```
-*Los reportes de resultados se generan en: `app/build/reports/tests/testDebugUnitTest/index.html`.*
 
-### 2. Pruebas de Interfaz de Usuario (Jetpack Compose Testing)
-Se ejecutan sobre un emulador Android encendido o dispositivo conectado. Se ubican en `app/src/androidTest/` (ej. [`GreetingComposeTest.kt`](app/src/androidTest/java/com/example/misw4203_tsdc_vinilos/GreetingComposeTest.kt)).
-
-- **En Windows:**
-  ```powershell
-  .\gradlew.bat connectedAndroidTest
-  ```
-- **En macOS / Linux:**
-  ```bash
-  ./gradlew connectedAndroidTest
-  ```
-*Los reportes de resultados se generan en: `app/build/reports/androidTests/connected/index.html`.*
+*Los reportes detallados en HTML con el resultado de las pruebas se generan en:*
+`app/build/reports/tests/testDebugUnitTest/index.html`
 
 ---
 
@@ -204,20 +186,20 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## Integración Continua (CI/CD) — Pipelines de GitHub Actions
 
-El repositorio cuenta con flujos de integración continua completamente automatizados para validar la calidad del código, ejecutar pruebas y gestionar el ciclo de vida de las ramas según la estrategia GitFlow:
+El repositorio cuenta con flujos de integración continua completamente automatizados y optimizados para alta velocidad de ejecución (~30-45 segundos por build):
 
 ```mermaid
 flowchart TD
     subgraph Feature["Rama feature/**"]
-        F1["git push"] --> F2["test-and-compose\n(Unitarias + Compose UI en Emulador)"]
+        F1["git push"] --> F2["test-and-compose\n(Pruebas Unitarias y Compose en JVM)"]
         F2 -->|Falla| F3["Bloquea creación de PR"]
         F2 -->|Pasa| F4{"¿Commit contiene #DONE?"}
-        F4 -->|No| F5["Feedback continuo (Éxito)"]
+        F4 -->|No| F5["Feedback rápido en segundos (Éxito)"]
         F4 -->|Sí| F6["Creación Automática de PR a develop"]
     end
 
     subgraph Develop["Rama develop"]
-        F6 --> PR1["PR Quality Checks\n(Unitarias + Compose + Build)"]
+        F6 --> PR1["PR Quality Checks\n(Tests JVM + Build APK)"]
         PR1 -->|Merge| D1["develop actualizado"]
         D1 --> D2["Commit con #RELEASE"]
         D2 --> D3["test-and-compose en develop"]
@@ -234,17 +216,16 @@ flowchart TD
 - **Disparador**: Cada `push` a cualquier rama que comience con `feature/**`.
 - **Job de Calidad (`test-and-compose`)**:
   - Configura **JDK 25** y Gradle con caché.
-  - Ejecuta pruebas unitarias: `./gradlew testDebugUnitTest --continue`.
-  - Inicia un emulador Android con aceleración por hardware (KVM) y ejecuta las pruebas de UI de Jetpack Compose: `./gradlew connectedAndroidTest`.
-  - Publica los reportes de pruebas unitarias y de Compose como artefactos descargables del workflow.
-  - **Bloqueo de seguridad**: Si alguna prueba unitaria o de Compose falla, el flujo se detiene inmediatamente.
+  - Ejecuta la suite de pruebas unitarias y de Compose: `./gradlew testDebugUnitTest --continue`.
+  - Publica los reportes de pruebas como artefactos descargables del workflow.
+  - **Bloqueo de seguridad**: Si alguna prueba falla, el flujo se detiene inmediatamente.
 - **Job de Apertura de PR (`create-pull-request`)**:
   - Requiere que el job de pruebas haya sido exitoso.
   - Si el último mensaje de commit incluye la etiqueta **`#DONE`**, crea automáticamente un Pull Request desde la rama de feature hacia `develop`.
 
 ### 2. Flujo de Release (`develop_release.yml`)
 - **Disparador**: Cada `push` a la rama `develop`.
-- **Validación de Calidad**: Ejecuta las pruebas unitarias y de Compose en `develop`.
+- **Validación de Calidad**: Ejecuta las pruebas en `develop`.
 - **Corte de Release**: Si las pruebas pasan y el commit incluye la etiqueta **`#RELEASE`**:
   - Genera automáticamente una nueva rama de versión (`release/YYYY.MM.DD`).
   - Sube la rama y crea el Pull Request de release hacia la rama `main`.
@@ -252,10 +233,9 @@ flowchart TD
 ### 3. Verificación de Pull Requests (`pr_verification.yml`)
 - **Disparador**: Ante cualquier `pull_request` abierto hacia `develop`, `main` o ramas `release/**`.
 - **Validación**:
-  - Ejecuta pruebas unitarias (`testDebugUnitTest`).
-  - Ejecuta pruebas de UI de Jetpack Compose en emulador (`connectedAndroidTest`).
+  - Ejecuta pruebas unitarias y de Compose en JVM (`testDebugUnitTest`).
   - Verifica la compilación completa del APK (`assembleDebug`).
-- Actúa como **Status Check** directo en GitHub para habilitar políticas de protección de ramas (*Branch Protection Rules*).
+- Actúa como **Status Check** directo en GitHub para proteger las ramas principales.
 
 ### 4. Cierre de Release y Sincronización (`release_main.yml`)
 - **Disparador**: Al cerrarse y fusionarse el Pull Request de release hacia `main`.
@@ -277,15 +257,15 @@ flowchart TD
    git commit -m "feat: Implementar modelo y servicio de álbumes"
    git push origin feature/HU01-listar-albumes
    ```
-   *(El pipeline validará que las pruebas unitarias y de Compose pasen en cada push, sin abrir aún el Pull Request).*
+   *(El pipeline validará que todas las pruebas pasen en ~30 segundos, sin abrir aún el Pull Request).*
 
 3. **Finalizar la funcionalidad con la etiqueta `#DONE`:**
-   Una vez implementada la funcionalidad junto con sus respectivas pruebas unitarias y de Compose:
+   Una vez implementada la funcionalidad junto con sus respectivas pruebas:
    ```bash
    git commit -m "feat: Completar interfaz y pruebas de álbumes #DONE"
    git push origin feature/HU01-listar-albumes
    ```
-   *(El pipeline ejecutará la suite completa y, al aprobarla, creará automáticamente el Pull Request hacia `develop`).*
+   *(El pipeline ejecutará la suite completa y creará automáticamente el Pull Request hacia `develop`).*
 
 ---
 
@@ -293,6 +273,6 @@ flowchart TD
 
 - Mantenga una estructura limpia y modular siguiendo los principios de arquitectura recomendados por Android (MVVM / Capas).
 - Escriba pruebas unitarias para ViewModels y repositorios en `app/src/test/`.
-- Escriba pruebas de interfaz con Jetpack Compose Testing en `app/src/androidTest/`.
-- Valide que el proyecto compile y que los tests pasen localmente antes de realizar un `push` o crear un Pull Request.
+- Escriba pruebas de interfaz con Jetpack Compose Testing (`createComposeRule` con Robolectric) en `app/src/test/`.
+- Valide que el proyecto compile y que los tests pasen localmente (`.\gradlew.bat testDebugUnitTest`) antes de realizar un `push` o crear un Pull Request.
 - Asegúrese de no versionar archivos locales (`local.properties`, credenciales de firma, cachés de IDE, etc.).

@@ -4,17 +4,19 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
- * Pruebas de interfaz de usuario con Jetpack Compose Testing.
- * Valida el renderizado inicial y las interacciones con el estado del Composable.
+ * Pruebas de interfaz de usuario de Jetpack Compose ejecutadas en la JVM con Robolectric.
+ * Se ejecutan directamente en la máquina virtual en pocos segundos sin necesidad de emulador.
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class GreetingComposeTest {
 
     @get:Rule
