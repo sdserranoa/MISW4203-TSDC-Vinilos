@@ -17,8 +17,11 @@ Este proyecto se desarrolla como una aplicación nativa para Android, utilizando
 - **Jetpack Compose**: Toolkit declarativo moderno para la construcción de interfaces de usuario nativas.
 - **Material 3**: Sistema de diseño y componentes visuales de Material Design.
 - **Navigation Compose**: Gestión de navegación entre pantallas.
-- **Gradle**: Sistema de automatización de compilación y gestión de dependencias.
+- **Gradle**: Sistema de automatización de compilación y gestión de dependencias (Gradle 9.x).
 - **JDK 25**: Entorno Java requerido para ejecutar Gradle y el daemon de compilación (configurado en `gradle/gradle-daemon-jvm.properties`).
+- **Frameworks de Pruebas**:
+  - **JUnit 4**: Pruebas unitarias locales ejecutadas en la JVM del host.
+  - **Jetpack Compose Testing (`androidx.compose.ui.test`) + Robolectric**: Pruebas de interfaz de usuario ejecutadas directamente en la JVM sin emulador, permitiendo una ejecución ultra rápida en desarrollo y CI/CD.
 - **API REST**: Servicio remoto para la consulta y gestión de datos de la aplicación.
 
 ---
@@ -29,22 +32,31 @@ La estructura del repositorio sigue la organización estándar de proyectos Andr
 
 ```text
 MISW4203-TSDC-Vinilos/
+├── .github/
+│   └── workflows/
+│       ├── feature_develop.yml     # Flujo automático de Features con #DONE
+│       ├── develop_release.yml     # Flujo automático de Releases con #RELEASE
+│       ├── release_main.yml        # Flujo de cierre de release y tagging
+│       └── pr_verification.yml     # Verificación de calidad en Pull Requests
 ├── app/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/example/misw4203_tsdc_vinilos/
-│   │   │   │       ├── MainActivity.kt
-│   │   │   │       ├── navigation/
-│   │   │   │       ├── ui/
-│   │   │   │       │   ├── components/
-│   │   │   │       │   ├── screens/
-│   │   │   │       │   └── theme/
-│   │   │   │       ├── data/
-│   │   │   │       └── model/
+│   │   │   ├── java/com/example/misw4203_tsdc_vinilos/
+│   │   │   │   ├── MainActivity.kt
+│   │   │   │   ├── navigation/
+│   │   │   │   ├── ui/
+│   │   │   │   │   ├── components/
+│   │   │   │   │   ├── screens/
+│   │   │   │   │   └── theme/
+│   │   │   │   ├── data/
+│   │   │   │   └── model/
 │   │   │   ├── res/
 │   │   │   └── AndroidManifest.xml
-│   │   └── test/
+│   │   ├── test/                   # Pruebas Unitarias y Compose UI (JVM / Robolectric)
+│   │   │   └── java/com/example/misw4203_tsdc_vinilos/
+│   │   │       ├── ExampleUnitTest.kt
+│   │   │       └── GreetingComposeTest.kt
+│   │   └── androidTest/            # Pruebas instrumentadas (opcional en dispositivo)
 │   └── build.gradle.kts
 ├── gradle/
 │   ├── wrapper/
@@ -67,6 +79,7 @@ MISW4203-TSDC-Vinilos/
 - **`data/`**: Capa de datos, clientes de red y repositorios encargados de consumir la API REST.
 - **`model/`**: Clases de datos que representan las entidades del dominio (Álbum, Artista, Músico, etc.).
 - **`res/`**: Recursos estáticos de Android (iconos, imágenes, cadenas de texto y temas XML).
+- **`src/test/`**: Contiene tanto las pruebas unitarias como las pruebas de interfaz de Jetpack Compose (`GreetingComposeTest.kt`), las cuales se ejecutan sobre la JVM utilizando **Robolectric** en cuestión de segundos sin requerir emulador.
 
 ---
 
@@ -78,7 +91,6 @@ Para desarrollar, compilar y ejecutar el proyecto localmente, asegúrese de cont
 2. **JDK 25** instalado y configurado en el sistema y en Android Studio para Gradle.
 3. **Android SDK** con las plataformas y herramientas de compilación compatibles (API 37).
 4. **Git** para el control de versiones.
-5. Un **Emulador Android** configurado (AVD) o un dispositivo físico con depuración USB habilitada.
 
 > **Nota:** El proyecto incluye Gradle Wrapper (`gradlew`) y el archivo `gradle/gradle-daemon-jvm.properties` configurado específicamente para utilizar **JDK 25**.
 
@@ -97,16 +109,16 @@ cd MISW4203-TSDC-Vinilos
 
 ### 2. Verificar la Versión de Java (JDK 25)
 
-Asegúrese de tener configurado JDK 25 en su equipo. Puede verificarlo desde la terminal:
+Asegúrese de tener configurado JDK 25 en su equipo:
 
 ```bash
 java -version
 ```
 
-Para comprobar la versión de la JVM utilizada por Gradle al compilar, ejecute:
+Para comprobar la versión de la JVM utilizada por Gradle al compilar:
 
 - **En Windows (PowerShell / CMD):**
-  ```bash
+  ```powershell
   .\gradlew.bat --version
   ```
 - **En macOS / Linux:**
@@ -128,7 +140,7 @@ La salida debe indicar que la JVM de Gradle corresponde a **Java 25**.
 Si prefiere utilizar la línea de comandos, puede verificar la compilación ejecutando:
 
 - **En Windows (PowerShell / CMD):**
-  ```bash
+  ```powershell
   .\gradlew.bat assembleDebug
   ```
 - **En macOS / Linux:**
@@ -136,10 +148,23 @@ Si prefiere utilizar la línea de comandos, puede verificar la compilación ejec
   ./gradlew assembleDebug
   ```
 
-Si la compilación finaliza correctamente, verá el mensaje:
-```text
-BUILD SUCCESSFUL
-```
+---
+
+## Ejecución de Pruebas
+
+Tanto las **pruebas unitarias** como las **pruebas de interfaz de usuario de Jetpack Compose** se ejecutan directamente en la JVM del host sin necesidad de encender un emulador:
+
+- **En Windows (PowerShell / CMD):**
+  ```powershell
+  .\gradlew.bat testDebugUnitTest
+  ```
+- **En macOS / Linux:**
+  ```bash
+  ./gradlew testDebugUnitTest
+  ```
+
+*Los reportes detallados en HTML con el resultado de las pruebas se generan en:*
+`app/build/reports/tests/testDebugUnitTest/index.html`
 
 ---
 
@@ -159,14 +184,95 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## Integración con la API REST
+## Integración Continua (CI/CD) — Pipelines de GitHub Actions
 
-La aplicación se comunica con el servicio backend de Vinilos para la obtención y gestión de la información. La integración se implementa de manera progresiva mediante la capa de red y los repositorios configurados en el paquete `data`.
+El repositorio cuenta con flujos de integración continua completamente automatizados y optimizados para alta velocidad de ejecución (~30-45 segundos por build):
+
+```mermaid
+flowchart TD
+    subgraph Feature["Rama feature/**"]
+        F1["git push"] --> F2["test-and-compose\n(Pruebas Unitarias y Compose en JVM)"]
+        F2 -->|Falla| F3["Bloquea creación de PR"]
+        F2 -->|Pasa| F4{"¿Commit contiene #DONE?"}
+        F4 -->|No| F5["Feedback rápido en segundos (Éxito)"]
+        F4 -->|Sí| F6["Creación Automática de PR a develop"]
+    end
+
+    subgraph Develop["Rama develop"]
+        F6 --> PR1["PR Quality Checks\n(Tests JVM + Build APK)"]
+        PR1 -->|Merge| D1["develop actualizado"]
+        D1 --> D2["Commit con #RELEASE"]
+        D2 --> D3["test-and-compose en develop"]
+        D3 -->|Pasa| D4["Creación Automática de rama release/YYYY.MM.DD\ny PR hacia main"]
+    end
+
+    subgraph Main["Rama main"]
+        D4 --> M1["PR Quality Checks"]
+        M1 -->|Merge| M2["release_main.yml\n(Creación de Tag vYYYY.MM.DD\ny Sync PR a develop)"]
+    end
+```
+
+### 1. Flujo de Features (`feature_develop.yml`)
+- **Disparador**: Cada `push` a cualquier rama que comience con `feature/**`.
+- **Job de Calidad (`test-and-compose`)**:
+  - Configura **JDK 25** y Gradle con caché.
+  - Ejecuta la suite de pruebas unitarias y de Compose: `./gradlew testDebugUnitTest --continue`.
+  - Publica los reportes de pruebas como artefactos descargables del workflow.
+  - **Bloqueo de seguridad**: Si alguna prueba falla, el flujo se detiene inmediatamente.
+- **Job de Apertura de PR (`create-pull-request`)**:
+  - Requiere que el job de pruebas haya sido exitoso.
+  - Si el último mensaje de commit incluye la etiqueta **`#DONE`**, crea automáticamente un Pull Request desde la rama de feature hacia `develop`.
+
+### 2. Flujo de Release (`develop_release.yml`)
+- **Disparador**: Cada `push` a la rama `develop`.
+- **Validación de Calidad**: Ejecuta las pruebas en `develop`.
+- **Corte de Release**: Si las pruebas pasan y el commit incluye la etiqueta **`#RELEASE`**:
+  - Genera automáticamente una nueva rama de versión (`release/YYYY.MM.DD`).
+  - Sube la rama y crea el Pull Request de release hacia la rama `main`.
+
+### 3. Verificación de Pull Requests (`pr_verification.yml`)
+- **Disparador**: Ante cualquier `pull_request` abierto hacia `develop`, `main` o ramas `release/**`.
+- **Validación**:
+  - Ejecuta pruebas unitarias y de Compose en JVM (`testDebugUnitTest`).
+  - Verifica la compilación completa del APK (`assembleDebug`).
+- Actúa como **Status Check** directo en GitHub para proteger las ramas principales.
+
+### 4. Cierre de Release y Sincronización (`release_main.yml`)
+- **Disparador**: Al cerrarse y fusionarse el Pull Request de release hacia `main`.
+- Extrae la versión de la rama, crea el **Tag y Release oficial** en GitHub (ej. `v2026.10.21`) y abre un PR de sincronización de vuelta hacia `develop`.
+
+---
+
+### Guía para Desarrolladores: Cómo usar `#DONE`
+
+1. **Crear la rama de funcionalidad a partir de `develop`:**
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/HU01-listar-albumes
+   ```
+
+2. **Realizar commits incrementales de desarrollo (sin `#DONE`):**
+   ```bash
+   git commit -m "feat: Implementar modelo y servicio de álbumes"
+   git push origin feature/HU01-listar-albumes
+   ```
+   *(El pipeline validará que todas las pruebas pasen en ~30 segundos, sin abrir aún el Pull Request).*
+
+3. **Finalizar la funcionalidad con la etiqueta `#DONE`:**
+   Una vez implementada la funcionalidad junto con sus respectivas pruebas:
+   ```bash
+   git commit -m "feat: Completar interfaz y pruebas de álbumes #DONE"
+   git push origin feature/HU01-listar-albumes
+   ```
+   *(El pipeline ejecutará la suite completa y creará automáticamente el Pull Request hacia `develop`).*
 
 ---
 
 ## Contribución y Buenas Prácticas
 
 - Mantenga una estructura limpia y modular siguiendo los principios de arquitectura recomendados por Android (MVVM / Capas).
-- Valide que el proyecto compile exitosamente antes de realizar un `push` o crear un Pull Request.
+- Escriba pruebas unitarias para ViewModels y repositorios en `app/src/test/`.
+- Escriba pruebas de interfaz con Jetpack Compose Testing (`createComposeRule` con Robolectric) en `app/src/test/`.
+- Valide que el proyecto compile y que los tests pasen localmente (`.\gradlew.bat testDebugUnitTest`) antes de realizar un `push` o crear un Pull Request.
 - Asegúrese de no versionar archivos locales (`local.properties`, credenciales de firma, cachés de IDE, etc.).

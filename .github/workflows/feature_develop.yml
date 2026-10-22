@@ -6,8 +6,8 @@ on:
       - 'feature/**'
 
 jobs:
-  test-and-espresso:
-    name: Run Unit & Espresso Tests
+  test-and-compose:
+    name: Run Unit & Compose UI Tests (JVM)
     runs-on: ubuntu-latest
 
     steps:
@@ -26,44 +26,20 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Unit Tests
+      - name: Run Unit & Compose Tests
         run: ./gradlew testDebugUnitTest --continue
 
-      - name: Enable KVM group permissions
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Run Espresso Tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          target: default
-          arch: x86_64
-          profile: pixel
-          disable-animations: true
-          script: ./gradlew connectedAndroidTest
-
-      - name: Upload Unit Test Report
+      - name: Upload Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results-feature
+          name: test-results-feature
           path: app/build/reports/tests/testDebugUnitTest/
-          if-no-files-found: ignore
-
-      - name: Upload Espresso Test Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: espresso-test-results-feature
-          path: app/build/reports/androidTests/connected/
           if-no-files-found: ignore
 
   create-pull-request:
     name: Create Pull Request
-    needs: test-and-espresso
+    needs: test-and-compose
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -97,7 +73,7 @@ jobs:
           
           ## Calidad y Pruebas
           - Pruebas unitarias ejecutadas y aprobadas exitosamente
-          - Pruebas de UI (Espresso) ejecutadas y aprobadas en emulador Android
+          - Pruebas de UI (Jetpack Compose con Robolectric) ejecutadas y aprobadas en JVM
           
           ## Cambios
           - Se implementaron los cambios de la historia de usuario
