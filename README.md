@@ -16,7 +16,10 @@ Este proyecto se desarrolla como una aplicación nativa para Android, utilizando
 - **Android SDK**: Herramientas y bibliotecas de desarrollo para Android (`minSdk 26`, `compileSdk 37`, `targetSdk 37`).
 - **Jetpack Compose**: Toolkit declarativo moderno para la construcción de interfaces de usuario nativas.
 - **Material 3**: Sistema de diseño y componentes visuales de Material Design.
-- **Navigation Compose**: Gestión de navegación entre pantallas.
+- **Navigation Compose**: Gestión de navegación entre pantallas con rutas tipadas.
+- **Arquitectura MVVM**: `ViewModel` + `StateFlow` con estados de UI explícitos (carga, vacío, error, éxito).
+- **Retrofit + kotlinx.serialization**: Cliente HTTP y deserialización de la API REST.
+- **Coil 3**: Carga asíncrona y caché de imágenes (carátulas) en Compose.
 - **Gradle**: Sistema de automatización de compilación y gestión de dependencias (Gradle 9.x).
 - **JDK 25**: Entorno Java requerido para ejecutar Gradle y el daemon de compilación (configurado en `gradle/gradle-daemon-jvm.properties`).
 - **Frameworks de Pruebas**:
@@ -43,19 +46,24 @@ MISW4203-TSDC-Vinilos/
 │   │   ├── main/
 │   │   │   ├── java/com/example/misw4203_tsdc_vinilos/
 │   │   │   │   ├── MainActivity.kt
-│   │   │   │   ├── navigation/
+│   │   │   │   ├── VinilosApplication.kt   # Configuración global (ImageLoader de Coil)
+│   │   │   │   ├── navigation/             # VinilosNavHost y rutas tipadas
 │   │   │   │   ├── ui/
-│   │   │   │   │   ├── components/
+│   │   │   │   │   ├── components/         # AlbumCard, PaginationBar, StateMessage, VinilosTopBar
 │   │   │   │   │   ├── screens/
+│   │   │   │   │   │   └── albums/         # HU01: pantalla, ViewModel y estado de UI
 │   │   │   │   │   └── theme/
 │   │   │   │   ├── data/
+│   │   │   │   │   ├── network/            # Retrofit, OkHttp y endpoints de BackVynils
+│   │   │   │   │   └── repository/
 │   │   │   │   └── model/
 │   │   │   ├── res/
 │   │   │   └── AndroidManifest.xml
 │   │   ├── test/                   # Pruebas Unitarias y Compose UI (JVM / Robolectric)
 │   │   │   └── java/com/example/misw4203_tsdc_vinilos/
-│   │   │       ├── ExampleUnitTest.kt
-│   │   │       └── GreetingComposeTest.kt
+│   │   │       ├── data/network/           # Contrato JSON de la API
+│   │   │       ├── ui/screens/albums/      # ViewModel (JUnit) y pantalla (Compose Test)
+│   │   │       └── testutil/               # Fakes, fixtures y MainDispatcherRule
 │   │   └── androidTest/            # Pruebas instrumentadas (opcional en dispositivo)
 │   └── build.gradle.kts
 ├── gradle/
@@ -79,7 +87,7 @@ MISW4203-TSDC-Vinilos/
 - **`data/`**: Capa de datos, clientes de red y repositorios encargados de consumir la API REST.
 - **`model/`**: Clases de datos que representan las entidades del dominio (Álbum, Artista, Músico, etc.).
 - **`res/`**: Recursos estáticos de Android (iconos, imágenes, cadenas de texto y temas XML).
-- **`src/test/`**: Contiene tanto las pruebas unitarias como las pruebas de interfaz de Jetpack Compose (`GreetingComposeTest.kt`), las cuales se ejecutan sobre la JVM utilizando **Robolectric** en cuestión de segundos sin requerir emulador.
+- **`src/test/`**: Contiene tanto las pruebas unitarias como las pruebas de interfaz de Jetpack Compose (p. ej. `AlbumListViewModelTest.kt` y `AlbumListScreenTest.kt`), las cuales se ejecutan sobre la JVM utilizando **Robolectric** en cuestión de segundos sin requerir emulador.
 
 ---
 
@@ -135,7 +143,23 @@ La salida debe indicar que la JVM de Gradle corresponde a **Java 25**.
 4. Espere a que Android Studio importe el proyecto y sincronice las dependencias de Gradle utilizando JDK 25.
 5. Si se le solicita instalar componentes adicionales del SDK, acepte la instalación.
 
-### 4. Compilación desde la Terminal
+### 4. Configurar la URL de la API (BackVynils)
+
+La aplicación consume la API [BackVynils](https://github.com/TheSoftwareDesignLab/BackVynils), que por defecto escucha en el puerto `3000`. La URL base se inyecta en `BuildConfig.API_BASE_URL` a partir de la propiedad de Gradle `vinilos.apiBaseUrl`:
+
+| Escenario | Valor de `vinilos.apiBaseUrl` |
+|-----------|-------------------------------|
+| Emulador con la API en el equipo local (valor por defecto) | `http://10.0.2.2:3000/` |
+| Dispositivo físico por USB con la API en el equipo local | `http://127.0.0.1:3000/` + `adb reverse tcp:3000 tcp:3000` |
+| API desplegada en un servidor | `http://<host>:<puerto>/` |
+
+Para no modificar el valor versionado en `gradle.properties`, defina la propiedad en `~/.gradle/gradle.properties` o pásela al compilar:
+
+```bash
+./gradlew assembleDebug -Pvinilos.apiBaseUrl=http://127.0.0.1:3000/
+```
+
+### 5. Compilación desde la Terminal
 
 Si prefiere utilizar la línea de comandos, puede verificar la compilación ejecutando:
 

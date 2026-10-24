@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">MISW4203-TSDC-Vinilos</string>
+    <string name="app_title">Vinilos</string>
+
+    <!-- HU01: Catálogo de álbumes -->
+    <plurals name="albums_header">
+        <item quantity="one">Explora %d álbum clásico</item>
+        <item quantity="other">Explora %d álbumes clásicos</item>
+    </plurals>
+    <string name="album_cover_description">Carátula del álbum %1$s</string>
+    <string name="albums_loading">Cargando álbumes…</string>
+    <string name="albums_empty">No hay álbumes disponibles en este momento.</string>
+    <string name="albums_error">Ocurrió un error al cargar los álbumes. Por favor, comunícate con el administrador.</string>
+    <string name="retry">Reintentar</string>
+
+    <!-- Paginación -->
+    <string name="pagination_label">Pág. %1$d de %2$d</string>
+    <string name="pagination_previous">Página anterior</string>
+    <string name="pagination_next">Página siguiente</string>
 </resources>
