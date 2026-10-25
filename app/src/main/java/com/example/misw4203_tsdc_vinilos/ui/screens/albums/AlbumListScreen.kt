@@ -44,6 +44,7 @@ import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
 @Composable
 fun AlbumListScreen(
     modifier: Modifier = Modifier,
+    onAlbumClick: (Int) -> Unit = {},
     viewModel: AlbumListViewModel = viewModel(factory = AlbumListViewModel.Factory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -53,6 +54,7 @@ fun AlbumListScreen(
         onPreviousPage = viewModel::previousPage,
         onNextPage = viewModel::nextPage,
         onRetry = viewModel::loadAlbums,
+        onAlbumClick = onAlbumClick,
         modifier = modifier,
     )
 }
@@ -64,6 +66,7 @@ fun AlbumListContent(
     onNextPage: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onAlbumClick: (Int) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -92,6 +95,7 @@ fun AlbumListContent(
                 state = uiState,
                 onPreviousPage = onPreviousPage,
                 onNextPage = onNextPage,
+                onAlbumClick = onAlbumClick,
                 modifier = contentModifier,
             )
         }
@@ -103,6 +107,7 @@ private fun AlbumGrid(
     state: AlbumListUiState.Success,
     onPreviousPage: () -> Unit,
     onNextPage: () -> Unit,
+    onAlbumClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Estado de scroll indexado por página: cada página inicia en el tope y la posición
@@ -123,7 +128,10 @@ private fun AlbumGrid(
             AlbumCountHeader(totalAlbums = state.totalAlbums)
         }
         items(state.albums, key = { it.id }) { album ->
-            AlbumCard(album = album)
+            AlbumCard(
+                album = album,
+                onClick = { onAlbumClick(album.id) },
+            )
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
             Box(

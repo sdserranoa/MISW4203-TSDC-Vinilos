@@ -11,12 +11,16 @@ fun testAlbum(
     genre: String = "Rock",
     releaseDate: String = "1984-08-01T00:00:00.000Z",
     performers: List<Performer> = emptyList(),
+    description: String = "Descripción del álbum $id",
+    recordLabel: String = "EMI",
 ) = Album(
     id = id,
     name = name,
     cover = "",
     releaseDate = releaseDate,
+    description = description,
     genre = genre,
+    recordLabel = recordLabel,
     performers = performers,
 )
 
@@ -31,5 +35,11 @@ class FakeVinilosApiService(
     override suspend fun getAlbums(): List<Album> {
         error?.let { throw it }
         return albums
+    }
+
+    override suspend fun getAlbum(albumId: Int): Album {
+        error?.let { throw it }
+        return albums.firstOrNull { it.id == albumId }
+            ?: throw NoSuchElementException("Album with id $albumId not found")
     }
 }

@@ -29,10 +29,15 @@ import com.example.misw4203_tsdc_vinilos.model.Album
 
 /** Tarjeta del catálogo con la carátula, el nombre, los intérpretes, el género y el año del álbum. */
 @Composable
-fun AlbumCard(album: Album, modifier: Modifier = Modifier) {
+fun AlbumCard(
+    album: Album,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+) {
     val coverPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainerHighest)
 
     Card(
+        onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),

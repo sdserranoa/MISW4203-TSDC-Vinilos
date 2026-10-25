@@ -17,4 +17,15 @@
     <string name="pagination_label">Pág. %1$d de %2$d</string>
     <string name="pagination_previous">Página anterior</string>
     <string name="pagination_next">Página siguiente</string>
+
+    <!-- HU02: Detalle de álbum -->
+    <string name="album_detail_title">Detalle de Álbum</string>
+    <string name="album_detail_loading">Cargando detalle del álbum…</string>
+    <string name="album_detail_error">Ocurrió un error al cargar el álbum. Por favor, comunícate con el administrador.</string>
+    <string name="back_to_catalog">Volver al catálogo</string>
+    <string name="favorite_album">Guardar en favoritos</string>
+    <string name="share_album">Compartir álbum</string>
+    <string name="audiophile_badge">180g Audiophile Vinyl</string>
+    <string name="read_more">Leer más</string>
+    <string name="read_less">Leer menos</string>
 </resources>

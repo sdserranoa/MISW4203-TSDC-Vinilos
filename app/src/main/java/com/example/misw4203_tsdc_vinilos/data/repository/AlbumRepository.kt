@@ -10,4 +10,12 @@ class AlbumRepository(
 ) {
 
     suspend fun getAlbums(): List<Album> = apiService.getAlbums()
+
+    suspend fun getAlbum(id: Int): Album {
+        return try {
+            apiService.getAlbum(id)
+        } catch (e: Exception) {
+            apiService.getAlbums().firstOrNull { it.id == id } ?: throw e
+        }
+    }
 }
