@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,7 +65,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
+import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
+import com.example.misw4203_tsdc_vinilos.model.Track
 import com.example.misw4203_tsdc_vinilos.ui.components.LoadingMessage
 import com.example.misw4203_tsdc_vinilos.ui.components.StateMessage
 import com.example.misw4203_tsdc_vinilos.ui.theme.Amber
@@ -168,15 +173,20 @@ fun AlbumDetailTopBar(
                         .padding(horizontal = 8.dp)
                         .semantics { heading() },
                 )
-
-
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
         }
     }
 }
 
-/** Cuerpo con la información base del álbum (Mockup de vinilo y metadatos). */
+/** Pestañas disponibles en la vista de detalle. */
+enum class AlbumDetailTab(val titleRes: Int) {
+    TRACKS(R.string.tab_tracks),
+    PERFORMERS(R.string.tab_performers),
+    COMMENTS(R.string.tab_comments),
+}
+
+/** Cuerpo con la información base del álbum y las secciones de contenido. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AlbumDetailBody(
@@ -184,6 +194,7 @@ fun AlbumDetailBody(
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
+    var selectedTab by rememberSaveable { mutableStateOf(AlbumDetailTab.TRACKS) }
 
     Column(
         modifier = modifier
@@ -263,6 +274,600 @@ fun AlbumDetailBody(
             AlbumDescription(
                 description = album.description,
                 modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Selector segmentado de pestañas según mockup
+        AlbumDetailTabs(
+            selectedTab = selectedTab,
+            onTabSelected = { selectedTab = it },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Contenido de la sección activa
+        when (selectedTab) {
+            AlbumDetailTab.TRACKS -> AlbumTracklistSection(
+                album = album,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            AlbumDetailTab.PERFORMERS -> AlbumPerformersSection(
+                album = album,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            AlbumDetailTab.COMMENTS -> AlbumCommentsSection(
+                album = album,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** Pestañas segmentadas con acento dorado y línea activa. */
+@Composable
+fun AlbumDetailTabs(
+    selectedTab: AlbumDetailTab,
+    onTabSelected: (AlbumDetailTab) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = Color.Transparent,
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                AlbumDetailTab.entries.forEach { tab ->
+                    val isSelected = tab == selectedTab
+                    Column(
+                        modifier = Modifier
+                            .clickable { onTabSelected(tab) }
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = stringResource(tab.titleRes),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Amber else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .height(2.5.dp)
+                                .width(if (isSelected) 36.dp else 0.dp)
+                                .background(
+                                    color = if (isSelected) Amber else Color.Transparent,
+                                    shape = RoundedCornerShape(2.dp),
+                                )
+                        )
+                    }
+                }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+        }
+    }
+}
+
+/** Listado 1: Pistas / Canciones del álbum (lista limpia sin ecualizador). */
+@Composable
+fun AlbumTracklistSection(
+    album: Album,
+    modifier: Modifier = Modifier,
+    onSamplePlay: () -> Unit = {},
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            // Encabezado de la lista de canciones
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.tracks_section_title).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp,
+                    )
+                    val tracksCount = album.tracks.size
+                    val subtitle = if (tracksCount > 0) {
+                        val totalSeconds = album.tracks.sumOf { track ->
+                            val parts = track.duration.split(":")
+                            if (parts.size == 2) {
+                                (parts[0].trim().toIntOrNull() ?: 0) * 60 + (parts[1].trim().toIntOrNull() ?: 0)
+                            } else 0
+                        }
+                        val min = totalSeconds / 60
+                        val sec = totalSeconds % 60
+                        if (totalSeconds > 0) {
+                            "$tracksCount canciones • $min:${sec.toString().padStart(2, '0')} min"
+                        } else {
+                            "$tracksCount canciones"
+                        }
+                    } else {
+                        "0 canciones"
+                    }
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                if (album.tracks.isNotEmpty()) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = Amber.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, Amber.copy(alpha = 0.35f)),
+                        modifier = Modifier.clickable { onSamplePlay() },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Canvas(modifier = Modifier.size(8.dp)) {
+                                val path = Path().apply {
+                                    moveTo(0f, 0f)
+                                    lineTo(size.width, size.height / 2f)
+                                    lineTo(0f, size.height)
+                                    close()
+                                }
+                                drawPath(path, color = Amber)
+                            }
+                            Text(
+                                text = stringResource(R.string.tracks_sample_button),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = Amber,
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+            if (album.tracks.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.tracks_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp, horizontal = 12.dp),
+                )
+            } else {
+                album.tracks.forEachIndexed { index, track ->
+                    TrackListItem(
+                        trackNumber = index + 1,
+                        track = track,
+                        performerName = album.performers.firstOrNull()?.name ?: "",
+                    )
+                    if (index < album.tracks.lastIndex) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                            modifier = Modifier.padding(vertical = 2.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Elemento de pista individual: número de pista, título, artista y duración. */
+@Composable
+fun TrackListItem(
+    trackNumber: Int,
+    track: Track,
+    performerName: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Número de pista
+        Text(
+            text = "$trackNumber",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(24.dp),
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        // Título de la pista y artista / compositor
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = track.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (performerName.isNotBlank()) {
+                Text(
+                    text = performerName,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Duración en fuente monoespaciada
+        Text(
+            text = track.duration.ifBlank { "--:--" },
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** Listado 2: Intérpretes y Músicos asociados al álbum. */
+@Composable
+fun AlbumPerformersSection(
+    album: Album,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.performers_section_title).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.sp,
+                )
+                if (album.performers.isNotEmpty()) {
+                    Text(
+                        text = "${album.performers.size} ${if (album.performers.size == 1) "artista" else "artistas"}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = Amber,
+                    )
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+            if (album.performers.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.performers_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp, horizontal = 12.dp),
+                )
+            } else {
+                album.performers.forEachIndexed { index, performer ->
+                    PerformerListItem(
+                        performer = performer,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (index < album.performers.lastIndex) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                            modifier = Modifier.padding(vertical = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Tarjeta individual de intérprete con avatar circular, nombre, tipo y biografía. */
+@Composable
+fun PerformerListItem(
+    performer: Performer,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Avatar circular con imagen o iniciales
+        Surface(
+            modifier = Modifier.size(54.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            border = BorderStroke(1.5.dp, Amber.copy(alpha = 0.6f)),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                // Iniciales de respaldo siempre visibles de fondo
+                val initials = performer.name
+                    .split(" ")
+                    .filter { it.isNotBlank() }
+                    .take(2)
+                    .mapNotNull { it.firstOrNull()?.uppercaseChar() }
+                    .joinToString("")
+                    .ifBlank { "AR" }
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black,
+                    color = Amber,
+                )
+
+                if (performer.normalizedImage.isNotBlank()) {
+                    AsyncImage(
+                        model = performer.normalizedImage,
+                        contentDescription = stringResource(R.string.performer_avatar_description, performer.name),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        // Datos del intérprete
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = performer.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = performer.performerType,
+                style = MaterialTheme.typography.labelSmall,
+                color = Amber,
+                fontWeight = FontWeight.Medium,
+            )
+            if (performer.description.isNotBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = performer.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+/** Listado 3: Reseñas y Comentarios de coleccionistas. */
+@Composable
+fun AlbumCommentsSection(
+    album: Album,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            // Cabecera con título y promedio de estrellas
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.comments_section_title).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp,
+                    )
+                    if (album.comments.isNotEmpty()) {
+                        val avgRating = album.comments.map { it.rating }.average()
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = Amber.copy(alpha = 0.15f),
+                            border = BorderStroke(0.5.dp, Amber.copy(alpha = 0.35f)),
+                        ) {
+                            Text(
+                                text = String.format("%.1f / 5.0", avgRating),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = Amber,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+
+                if (album.comments.isNotEmpty()) {
+                    Text(
+                        text = "${album.comments.size} reseñas",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+
+            if (album.comments.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.comments_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp, horizontal = 12.dp),
+                )
+            } else {
+                album.comments.forEachIndexed { index, comment ->
+                    CommentListItem(
+                        comment = comment,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                    )
+                    if (index < album.comments.lastIndex) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Tarjeta individual de reseña con autor, badge de verificado, estrellas y texto. */
+@Composable
+fun CommentListItem(
+    comment: Comment,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    // Avatar simple del coleccionista
+                    Surface(
+                        modifier = Modifier.size(34.dp),
+                        shape = CircleShape,
+                        color = Amber.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, Amber.copy(alpha = 0.4f)),
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            val collectorInitial = (comment.collector?.name?.firstOrNull() ?: 'C').uppercaseChar()
+                            Text(
+                                text = "$collectorInitial",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Amber,
+                            )
+                        }
+                    }
+
+                    Column {
+                        val authorName = comment.collector?.name?.ifBlank { null }
+                            ?: stringResource(R.string.collector_default_name)
+                        Text(
+                            text = authorName,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "✓ " + stringResource(R.string.collector_verified),
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            color = Amber,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
+
+                // Estrellas doradas según rating (1 a 5)
+                val starsText = buildString {
+                    val clampedRating = comment.rating.coerceIn(1, 5)
+                    repeat(clampedRating) { append("★") }
+                    repeat(5 - clampedRating) { append("☆") }
+                }
+                Text(
+                    text = starsText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Amber,
+                    letterSpacing = 1.sp,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "\"${comment.description}\"",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 18.sp,
             )
         }
     }
@@ -509,8 +1114,15 @@ private fun AlbumDetailContentPreview() {
         releaseDate = "1969-09-26T00:00:00.000Z",
         genre = "Rock Clásico",
         recordLabel = "Apple Records",
-        description = "El undécimo álbum de estudio de la legendaria banda británica The Beatles. Considerado una obra cumbre del rock con su icónica portada en el paso de cebra y el aclamado medley en el lado B.",
-        performers = listOf(Performer(1, "The Beatles")),
+        description = "El undécimo álbum de estudio de la legendaria banda británica The Beatles.",
+        performers = listOf(Performer(1, "The Beatles", description = "Legendaria banda de rock")),
+        tracks = listOf(
+            Track(1, "Come Together", "04:20"),
+            Track(2, "Something", "03:03"),
+        ),
+        comments = listOf(
+            Comment(1, "Una obra maestra sin precedentes", 5),
+        ),
     )
     MISW4203TSDCVinilosTheme {
         AlbumDetailContent(

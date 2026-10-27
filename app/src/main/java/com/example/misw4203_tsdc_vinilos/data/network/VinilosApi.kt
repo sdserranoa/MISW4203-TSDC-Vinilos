@@ -22,27 +22,40 @@ object VinilosApi {
     /**
      * Cliente compartido por Retrofit y Coil. Se envía un User-Agent propio porque algunos
      * orígenes de carátulas (p. ej. upload.wikimedia.org) rechazan con 403 el de OkHttp.
-     * Incluye fallback automático entre 10.0.2.2 y 127.0.0.1 (ADB reverse) para entornos
+     * Incluye normalización automática de URLs de Wikimedia Commons (HTTP 400 en miniaturas no estándar)
+     * y fallback automático entre 10.0.2.2 y 127.0.0.1 (ADB reverse) para entornos
      * donde el cortafuegos de Windows bloquea la interfaz virtual del emulador.
      */
     val httpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(3, TimeUnit.SECONDS)
+            .connectTimeout(5, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val originalRequest = chain.request().newBuilder()
+                val request = chain.request()
+                val url = request.url
+
+                // Normalización de miniaturas de Wikimedia Commons para evitar HTTP 400
+                val targetUrl = if (url.host == "upload.wikimedia.org" && url.encodedPath.contains("/thumb/")) {
+                    val cleanPath = url.encodedPath.replace(Regex("/thumb/(.+)/[^/]+$"), "/$1")
+                    url.newBuilder().encodedPath(cleanPath).build()
+                } else {
+                    url
+                }
+
+                val originalRequest = request.newBuilder()
+                    .url(targetUrl)
                     .header("User-Agent", userAgent)
                     .build()
                 try {
                     chain.proceed(originalRequest)
                 } catch (e: IOException) {
-                    val url = originalRequest.url
-                    val fallbackHost = when (url.host) {
+                    val currentUrl = originalRequest.url
+                    val fallbackHost = when (currentUrl.host) {
                         "10.0.2.2" -> "127.0.0.1"
                         "127.0.0.1" -> "10.0.2.2"
                         else -> null
                     }
                     if (fallbackHost != null) {
-                        val fallbackUrl = url.newBuilder().host(fallbackHost).build()
+                        val fallbackUrl = currentUrl.newBuilder().host(fallbackHost).build()
                         val fallbackRequest = originalRequest.newBuilder().url(fallbackUrl).build()
                         chain.proceed(fallbackRequest)
                     } else {
