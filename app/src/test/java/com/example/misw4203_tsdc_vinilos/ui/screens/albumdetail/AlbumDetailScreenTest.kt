@@ -1,15 +1,20 @@
 package com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.example.misw4203_tsdc_vinilos.model.Performer
+import androidx.compose.ui.test.performScrollTo
+import com.example.misw4203_tsdc_vinilos.model.Comment
+import com.example.misw4203_tsdc_vinilos.model.CommentCollector
 import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
+import com.example.misw4203_tsdc_vinilos.testutil.testPerformer
+import com.example.misw4203_tsdc_vinilos.testutil.testTrack
 import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,8 +22,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Pruebas de interfaz en Jetpack Compose del detalle de un álbum (HU02),
- * ejecutadas en la JVM con Robolectric sobre una pantalla de 411 x 891 dp.
+ * Pruebas de interfaz en Jetpack Compose del detail de álbum (HU02), ejecutadas en la JVM
+ * con Robolectric sobre una pantalla de teléfono de 411 x 891 dp.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
@@ -29,14 +34,14 @@ class AlbumDetailScreenTest {
 
     private fun setContent(
         uiState: AlbumDetailUiState,
-        onBack: () -> Unit = {},
+        onBackPage: () -> Unit = {},
         onRetry: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumDetailContent(
                     uiState = uiState,
-                    onBack = onBack,
+                    onBack = onBackPage,
                     onRetry = onRetry,
                 )
             }
@@ -44,60 +49,193 @@ class AlbumDetailScreenTest {
     }
 
     @Test
-    fun exito_muestraTituloArtistasGeneroAnioDiscograficaYDescripcion() {
-        val album = testAlbum(
-            id = 100,
-            name = "Abbey Road",
-            genre = "Rock Clásico",
-            releaseDate = "1969-09-26T00:00:00.000Z",
-            description = "Álbum icónico grabado en los estudios EMI.",
-            recordLabel = "Apple Records",
-            performers = listOf(Performer(1, "The Beatles")),
+    fun exito_muestraInformacionDelAlbum() {
+        setContent(
+            AlbumDetailUiState.Success(
+                album = testAlbum(
+                    1,
+                    "Buscando América",
+                    "Salsa",
+                    "1984-08-01T00:00:00.000Z",
+                    performers = listOf(
+                        testPerformer(1)
+                    ),
+                    tracks = listOf(
+                        testTrack(1),
+                        testTrack(2),
+                        testTrack(3),
+                    )
+                )
+            )
         )
-
-        setContent(AlbumDetailUiState.Success(album))
 
         composeTestRule.onNodeWithText("Detalle de Álbum").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Abbey Road").assertIsDisplayed()
-        composeTestRule.onNodeWithText("The Beatles").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Rock Clásico").assertIsDisplayed()
-        composeTestRule.onNodeWithText("1969").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Apple Records").assertIsDisplayed()
-        composeTestRule.onNodeWithText("180g Audiophile Vinyl").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Álbum icónico grabado en los estudios EMI.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Buscando América").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Salsa").assertIsDisplayed()
+
+        composeTestRule.onNodeWithContentDescription("Carátula del álbum Buscando América")
+            .assertIsDisplayed()
+        listOf("Buscando América", "Salsa", "1984", "Descripción del álbum 1")
+            .forEach { text ->
+                composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+            }
+        composeTestRule.onAllNodesWithText("EMI").onFirst().performScrollTo().assertIsDisplayed()
     }
 
     @Test
-    fun exito_clicEnVolver_ejecutaCallback() {
-        var backClicked = false
-        val album = testAlbum(id = 100, name = "Abbey Road")
-
+    fun canciones_muestraTodasLasPistasYSusDuraciones() {
         setContent(
-            uiState = AlbumDetailUiState.Success(album),
-            onBack = { backClicked = true },
+            AlbumDetailUiState.Success(
+                testAlbum(
+                    id = 1,
+                    tracks = listOf(
+                        testTrack(1, duration = "3:15"),
+                        testTrack(2, duration = "4:30"),
+                        testTrack(3, duration = "5:05"),
+                    ),
+                )
+            )
         )
 
-        composeTestRule.onNodeWithContentDescription("Volver al catálogo").performClick()
-        assertTrue(backClicked)
+        listOf("Canción 1", "3:15", "Canción 2", "4:30", "Canción 3", "5:05")
+            .forEach { text ->
+                composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+            }
+        composeTestRule.onNodeWithText("Este álbum aún no tiene pistas registradas en el catálogo.")
+            .assertDoesNotExist()
     }
 
     @Test
-    fun loading_muestraMensajeDeCarga() {
+    fun interpretes_muestraLosArtistasAlCambiarDePestana() {
+        setContent(
+            AlbumDetailUiState.Success(
+                testAlbum(
+                    id = 1,
+                    performers = listOf(
+                        testPerformer(1, name = "Carlos Vives"),
+                        testPerformer(2, name = "Rubén Blades"),
+                    ),
+                )
+            )
+        )
+
+        composeTestRule.onNodeWithText("Intérpretes").performScrollTo().performClick()
+
+        listOf("Carlos Vives", "Rubén Blades", "Descripción del interprete 1", "Descripción del interprete 2")
+            .forEach { text ->
+                composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+            }
+    }
+
+    @Test
+    fun comentarios_muestraCalificacionDescripcionYColeccionista() {
+        setContent(
+            AlbumDetailUiState.Success(
+                testAlbum(
+                    id = 1,
+                    comments = listOf(
+                        Comment(
+                            id = 1,
+                            description = "Excelente álbum",
+                            rating = 4,
+                            collector = CommentCollector(id = 1, name = "Ana Pérez"),
+                        ),
+                        Comment(
+                            id = 2,
+                            description = "Un clásico",
+                            rating = 5,
+                            collector = CommentCollector(id = 2, name = "Luis Torres"),
+                        ),
+                    ),
+                )
+            )
+        )
+
+        composeTestRule.onNodeWithText("Comentarios").performScrollTo().performClick()
+
+        listOf("Ana Pérez", "\"Excelente álbum\"", "★★★★☆", "Luis Torres", "\"Un clásico\"", "★★★★★")
+            .forEach { text ->
+                composeTestRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+            }
+        composeTestRule.onNodeWithText("Aún no hay comentarios ni reseñas para este álbum.")
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun comentarioSinAutor_muestraNombrePredeterminado() {
+        setContent(
+            AlbumDetailUiState.Success(
+                testAlbum(
+                    id = 1,
+                    comments = listOf(Comment(id = 1, description = "Excelente álbum")),
+                )
+            )
+        )
+
+        composeTestRule.onNodeWithText("Comentarios").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("Coleccionista").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun sinCanciones_muestraMensajeDeNoDisponibles() {
+        setContent(AlbumDetailUiState.Success(testAlbum(id = 1)))
+
+        composeTestRule.onNodeWithText("Este álbum aún no tiene pistas registradas en el catálogo.")
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun sinInterpretes_muestraMensajeDeNoDisponibles() {
+        setContent(AlbumDetailUiState.Success(testAlbum(id = 1)))
+
+        composeTestRule.onNodeWithText("Intérpretes").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("Este álbum no tiene artistas ni músicos asociados.")
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun sinComentarios_muestraMensajeDeNoDisponibles() {
+        setContent(AlbumDetailUiState.Success(testAlbum(id = 1)))
+
+        composeTestRule.onNodeWithText("Comentarios").performScrollTo().performClick()
+
+        composeTestRule.onNodeWithText("Aún no hay comentarios ni reseñas para este álbum.")
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun cargando_muestraMensajeDeCarga() {
         setContent(AlbumDetailUiState.Loading)
+
         composeTestRule.onNodeWithText("Cargando detalle del álbum…").assertIsDisplayed()
     }
 
     @Test
-    fun error_muestraMensajeYPermiteReintentar() {
-        var retried = false
+    fun error_muestraMensajeParaContactarAlAdministradorYPermiteReintentar() {
+        var retries = 0
+        setContent(AlbumDetailUiState.Error, onRetry = { retries++ })
+
+        composeTestRule.onNodeWithText(
+            "Ocurrió un error al cargar el álbum. Por favor, comunícate con el administrador."
+        ).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Reintentar").performClick()
+
+        assertEquals(1, retries)
+    }
+
+    @Test
+    fun volver_ejecutaCallback() {
+        var backClicks = 0
         setContent(
-            uiState = AlbumDetailUiState.Error,
-            onRetry = { retried = true },
+            AlbumDetailUiState.Success(testAlbum(id = 1)),
+            onBackPage = { backClicks++ },
         )
 
-        composeTestRule.onNode(hasText("Ocurrió un error al cargar el álbum", substring = true)).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Reintentar").performClick()
-        assertTrue(retried)
+        composeTestRule.onNodeWithContentDescription("Volver al catálogo").performClick()
+
+        assertEquals(1, backClicks)
     }
 
     @Test
@@ -111,10 +249,10 @@ class AlbumDetailScreenTest {
 
         setContent(AlbumDetailUiState.Success(album))
 
-        composeTestRule.onNodeWithText("Leer más").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Leer más").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Leer más").performClick()
-        composeTestRule.onNodeWithText("Leer menos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Leer menos").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Leer menos").performClick()
-        composeTestRule.onNodeWithText("Leer más").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Leer más").performScrollTo().assertIsDisplayed()
     }
 }
