@@ -17,4 +17,40 @@
     <string name="pagination_label">Pág. %1$d de %2$d</string>
     <string name="pagination_previous">Página anterior</string>
     <string name="pagination_next">Página siguiente</string>
+
+    <!-- HU02: Detalle de álbum -->
+    <string name="album_detail_title">Detalle de Álbum</string>
+    <string name="album_detail_loading">Cargando detalle del álbum…</string>
+    <string name="album_detail_error">Ocurrió un error al cargar el álbum. Por favor, comunícate con el administrador.</string>
+    <string name="back_to_catalog">Volver al catálogo</string>
+    <string name="favorite_album">Guardar en favoritos</string>
+    <string name="share_album">Compartir álbum</string>
+    <string name="audiophile_badge">180g Audiophile Vinyl</string>
+    <string name="read_more">Leer más</string>
+    <string name="read_less">Leer menos</string>
+
+    <!-- Pestañas del Detalle -->
+    <string name="tab_tracks">Canciones</string>
+    <string name="tab_performers">Intérpretes</string>
+    <string name="tab_comments">Comentarios</string>
+
+    <!-- Listado 1: Pistas / Canciones -->
+    <string name="tracks_section_title">Pistas del Álbum</string>
+    <plurals name="tracks_count_format">
+        <item quantity="one">%1$d canción</item>
+        <item quantity="other">%1$d canciones</item>
+    </plurals>
+    <string name="tracks_sample_button">Muestra 30s</string>
+    <string name="tracks_empty">Este álbum aún no tiene pistas registradas en el catálogo.</string>
+
+    <!-- Listado 2: Intérpretes & Músicos -->
+    <string name="performers_section_title">Intérpretes &amp; Músicos</string>
+    <string name="performers_empty">Este álbum no tiene artistas ni músicos asociados.</string>
+    <string name="performer_avatar_description">Fotografía de %1$s</string>
+
+    <!-- Listado 3: Reseñas & Comentarios -->
+    <string name="comments_section_title">Reseñas destacadas</string>
+    <string name="comments_empty">Aún no hay comentarios ni reseñas para este álbum.</string>
+    <string name="collector_verified">Coleccionista Verificado</string>
+    <string name="collector_default_name">Coleccionista</string>
 </resources>
