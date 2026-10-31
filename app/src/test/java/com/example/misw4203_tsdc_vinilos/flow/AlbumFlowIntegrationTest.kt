@@ -40,6 +40,7 @@ import org.robolectric.annotation.Config
  * 6. Retorno al catálogo general mediante el botón de navegación superior.
  * 7. Flujos alternos con estados vacíos y consultas sin resultados.
  */
+ 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [23, 26, 34, 35, 36], qualifiers = "w411dp-h891dp-xxhdpi")
 class AlbumFlowIntegrationTest {
