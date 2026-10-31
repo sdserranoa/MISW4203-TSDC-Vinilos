@@ -14,8 +14,11 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +57,7 @@ fun AlbumListScreen(
         onPreviousPage = viewModel::previousPage,
         onNextPage = viewModel::nextPage,
         onRetry = viewModel::loadAlbums,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
         onAlbumClick = onAlbumClick,
         modifier = modifier,
     )
@@ -66,6 +70,7 @@ fun AlbumListContent(
     onNextPage: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    onSearchQueryChange: (String) -> Unit = {},
     onAlbumClick: (Int) -> Unit = {},
 ) {
     Scaffold(
@@ -95,6 +100,7 @@ fun AlbumListContent(
                 state = uiState,
                 onPreviousPage = onPreviousPage,
                 onNextPage = onNextPage,
+                onSearchQueryChange = onSearchQueryChange,
                 onAlbumClick = onAlbumClick,
                 modifier = contentModifier,
             )
@@ -107,6 +113,7 @@ private fun AlbumGrid(
     state: AlbumListUiState.Success,
     onPreviousPage: () -> Unit,
     onNextPage: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
     onAlbumClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -125,27 +132,70 @@ private fun AlbumGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            AlbumCountHeader(totalAlbums = state.totalAlbums)
-        }
-        items(state.albums, key = { it.id }) { album ->
-            AlbumCard(
-                album = album,
-                onClick = { onAlbumClick(album.id) },
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(R.string.album_search_placeholder)) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_search),
+                        contentDescription = null,
+                    )
+                },
+                trailingIcon = {
+                    if (state.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { onSearchQueryChange("") }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_close),
+                                contentDescription = stringResource(R.string.album_search_clear),
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
             )
         }
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                PaginationBar(
-                    currentPage = state.currentPage,
-                    totalPages = state.totalPages,
-                    onPreviousPage = onPreviousPage,
-                    onNextPage = onNextPage,
+            AlbumCountHeader(totalAlbums = state.totalAlbums)
+        }
+        if (state.albums.isEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.album_search_empty, state.searchQuery),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        } else {
+            items(state.albums, key = { it.id }) { album ->
+                AlbumCard(
+                    album = album,
+                    onClick = { onAlbumClick(album.id) },
                 )
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PaginationBar(
+                        currentPage = state.currentPage,
+                        totalPages = state.totalPages,
+                        onPreviousPage = onPreviousPage,
+                        onNextPage = onNextPage,
+                    )
+                }
             }
         }
     }

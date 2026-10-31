@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextInput
 import com.example.misw4203_tsdc_vinilos.data.repository.AlbumRepository
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
@@ -28,7 +29,7 @@ import org.robolectric.annotation.Config
  * con Robolectric sobre una pantalla de teléfono de 411 x 891 dp.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+@Config(sdk = [23, 26, 34, 35, 36], qualifiers = "w411dp-h891dp-xxhdpi")
 class AlbumListScreenTest {
 
     @get:Rule
@@ -179,5 +180,89 @@ class AlbumListScreenTest {
         composeTestRule.onNodeWithText("Álbum 11").assertIsDisplayed()
         composeTestRule.onNodeWithText("Álbum 12").assertIsDisplayed()
         composeTestRule.onNodeWithText("Álbum 1").assertDoesNotExist()
+    }
+
+    @Test
+    fun filtro_alEscribirTexto_filtraYMuestraSoloAlbumesQueCoinciden() {
+        val albums = listOf(
+            testAlbum(1, "Buscando América", "Salsa", performers = listOf(Performer(1, "Rubén Blades"))),
+            testAlbum(2, "Artaud", "Rock", performers = listOf(Performer(2, "Pescado Rabioso"))),
+            testAlbum(3, "Siembra", "Salsa", performers = listOf(Performer(3, "Willie Colón"))),
+        )
+        val viewModel = AlbumListViewModel(AlbumRepository(FakeVinilosApiService(albums = albums)))
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                AlbumListScreen(viewModel = viewModel)
+            }
+        }
+
+        composeTestRule.onNodeWithText("Buscar por nombre, género o artista…")
+            .performTextInput("Salsa")
+
+        composeTestRule.onNodeWithText("Buscando América").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Siembra").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Artaud").assertDoesNotExist()
+    }
+
+    @Test
+    fun filtro_alEscribirArtista_filtraPorArtista() {
+        val albums = listOf(
+            testAlbum(1, "Buscando América", "Salsa", performers = listOf(Performer(1, "Rubén Blades"))),
+            testAlbum(2, "Artaud", "Rock", performers = listOf(Performer(2, "Pescado Rabioso"))),
+        )
+        val viewModel = AlbumListViewModel(AlbumRepository(FakeVinilosApiService(albums = albums)))
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                AlbumListScreen(viewModel = viewModel)
+            }
+        }
+
+        composeTestRule.onNodeWithText("Buscar por nombre, género o artista…")
+            .performTextInput("Pescado")
+
+        composeTestRule.onNodeWithText("Artaud").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Buscando América").assertDoesNotExist()
+    }
+
+    @Test
+    fun filtro_alLimpiarTextoConBoton_restauraListadoCompleto() {
+        val albums = listOf(
+            testAlbum(1, "Buscando América", "Salsa"),
+            testAlbum(2, "Artaud", "Rock"),
+        )
+        val viewModel = AlbumListViewModel(AlbumRepository(FakeVinilosApiService(albums = albums)))
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                AlbumListScreen(viewModel = viewModel)
+            }
+        }
+
+        composeTestRule.onNodeWithText("Buscar por nombre, género o artista…")
+            .performTextInput("Rock")
+
+        composeTestRule.onNodeWithText("Artaud").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Buscando América").assertDoesNotExist()
+
+        composeTestRule.onNodeWithContentDescription("Limpiar búsqueda").performClick()
+
+        composeTestRule.onNodeWithText("Buscando América").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Artaud").assertIsDisplayed()
+    }
+
+    @Test
+    fun filtro_sinResultados_muestraMensajeSinCoincidencias() {
+        val albums = listOf(testAlbum(1, "Buscando América", "Salsa"))
+        val viewModel = AlbumListViewModel(AlbumRepository(FakeVinilosApiService(albums = albums)))
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                AlbumListScreen(viewModel = viewModel)
+            }
+        }
+
+        composeTestRule.onNodeWithText("Buscar por nombre, género o artista…")
+            .performTextInput("Inexistente")
+
+        composeTestRule.onNodeWithText("No se encontraron álbumes para \"Inexistente\".")
+            .assertIsDisplayed()
     }
 }

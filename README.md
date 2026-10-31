@@ -13,7 +13,7 @@ Este proyecto se desarrolla como una aplicación nativa para Android, utilizando
 ## Tecnologías y Stack Utilizado
 
 - **Kotlin**: Lenguaje principal de programación.
-- **Android SDK**: Herramientas y bibliotecas de desarrollo para Android (`minSdk 26`, `compileSdk 37`, `targetSdk 37`).
+- **Android SDK**: Herramientas y bibliotecas de desarrollo para Android (`minSdk 23`, `compileSdk 37`, `targetSdk 37`).
 - **Jetpack Compose**: Toolkit declarativo moderno para la construcción de interfaces de usuario nativas.
 - **Material 3**: Sistema de diseño y componentes visuales de Material Design.
 - **Navigation Compose**: Gestión de navegación entre pantallas con rutas tipadas.

@@ -23,7 +23,8 @@ class AlbumListViewModel(
     private val _uiState = MutableStateFlow<AlbumListUiState>(AlbumListUiState.Loading)
     val uiState: StateFlow<AlbumListUiState> = _uiState.asStateFlow()
 
-    private var albums: List<Album> = emptyList()
+    private var allAlbums: List<Album> = emptyList()
+    private var searchQuery: String = ""
 
     init {
         loadAlbums()
@@ -33,13 +34,21 @@ class AlbumListViewModel(
         _uiState.value = AlbumListUiState.Loading
         viewModelScope.launch {
             _uiState.value = try {
-                albums = repository.getAlbums()
+                allAlbums = repository.getAlbums()
                 pageState(page = 1)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 AlbumListUiState.Error
             }
+        }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        if (searchQuery == query) return
+        searchQuery = query
+        if (allAlbums.isNotEmpty()) {
+            _uiState.value = pageState(page = 1)
         }
     }
 
@@ -53,14 +62,27 @@ class AlbumListViewModel(
         if (state.hasPreviousPage) _uiState.value = pageState(state.currentPage - 1)
     }
 
+    private fun filteredAlbums(): List<Album> {
+        if (searchQuery.isBlank()) return allAlbums
+        val query = searchQuery.trim()
+        return allAlbums.filter { album ->
+            album.name.contains(query, ignoreCase = true) ||
+                    album.genre.contains(query, ignoreCase = true) ||
+                    album.performers.any { it.name.contains(query, ignoreCase = true) }
+        }
+    }
+
     private fun pageState(page: Int): AlbumListUiState {
-        if (albums.isEmpty()) return AlbumListUiState.Empty
-        val totalPages = (albums.size + PAGE_SIZE - 1) / PAGE_SIZE
+        if (allAlbums.isEmpty()) return AlbumListUiState.Empty
+        val filtered = filteredAlbums()
+        val totalPages = if (filtered.isEmpty()) 1 else (filtered.size + PAGE_SIZE - 1) / PAGE_SIZE
+        val safePage = page.coerceIn(1, totalPages)
         return AlbumListUiState.Success(
-            albums = albums.drop((page - 1) * PAGE_SIZE).take(PAGE_SIZE),
-            totalAlbums = albums.size,
-            currentPage = page,
+            albums = filtered.drop((safePage - 1) * PAGE_SIZE).take(PAGE_SIZE),
+            totalAlbums = filtered.size,
+            currentPage = safePage,
             totalPages = totalPages,
+            searchQuery = searchQuery,
         )
     }
 
