@@ -11,6 +11,9 @@
     <string name="albums_loading">Cargando álbumes…</string>
     <string name="albums_empty">No hay álbumes disponibles en este momento.</string>
     <string name="albums_error">Ocurrió un error al cargar los álbumes. Por favor, comunícate con el administrador.</string>
+    <string name="album_search_placeholder">Buscar por nombre, género o artista…</string>
+    <string name="album_search_clear">Limpiar búsqueda</string>
+    <string name="album_search_empty">No se encontraron álbumes para \"%1$s\".</string>
     <string name="retry">Reintentar</string>
 
     <!-- Paginación -->
@@ -53,4 +56,9 @@
     <string name="comments_empty">Aún no hay comentarios ni reseñas para este álbum.</string>
     <string name="collector_verified">Coleccionista Verificado</string>
     <string name="collector_default_name">Coleccionista</string>
+
+    <!-- Navegación principal -->
+    <string name="nav_albums">Álbumes</string>
+    <string name="nav_artists">Artistas</string>
+    <string name="nav_collectors">Coleccionistas</string>
 </resources>

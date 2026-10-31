@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config
  * con Robolectric sobre una pantalla de teléfono de 411 x 891 dp.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+@Config(sdk = [23, 26, 34, 35, 36], qualifiers = "w411dp-h891dp-xxhdpi")
 class AlbumDetailScreenTest {
 
     @get:Rule

@@ -8,9 +8,14 @@ import com.example.misw4203_tsdc_vinilos.testutil.testAlbums
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 
 /** Pruebas unitarias de la carga y la paginación en cliente del detalle de un álbum (HU02). */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [23, 26, 34, 35, 36])
 class AlbumDetailViewModelTest {
 
     @get:Rule

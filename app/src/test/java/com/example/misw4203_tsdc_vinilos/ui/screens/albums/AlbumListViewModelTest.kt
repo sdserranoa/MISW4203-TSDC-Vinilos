@@ -9,9 +9,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 
 /** Pruebas unitarias de la carga y la paginación en cliente del catálogo de álbumes (HU01). */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [23, 26, 34, 35, 36])
 class AlbumListViewModelTest {
 
     @get:Rule
@@ -109,5 +114,103 @@ class AlbumListViewModelTest {
         viewModel.loadAlbums()
 
         assertEquals(3, viewModel.successState().totalAlbums)
+    }
+
+    @Test
+    fun filtro_porNombre_filtraLosAlbumesCorrectamente() {
+        val albums = listOf(
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(1, name = "Buscando América", genre = "Salsa"),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(2, name = "Artaud", genre = "Rock"),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(3, name = "Siembra", genre = "Salsa"),
+        )
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = albums))
+
+        viewModel.onSearchQueryChange("Buscando")
+
+        val state = viewModel.successState()
+        assertEquals(1, state.totalAlbums)
+        assertEquals(listOf(1), state.albums.map { it.id })
+    }
+
+    @Test
+    fun filtro_porGenero_filtraLosAlbumesCorrectamente() {
+        val albums = listOf(
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(1, name = "Buscando América", genre = "Salsa"),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(2, name = "Artaud", genre = "Rock"),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(3, name = "Siembra", genre = "Salsa"),
+        )
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = albums))
+
+        viewModel.onSearchQueryChange("salsa")
+
+        val state = viewModel.successState()
+        assertEquals(2, state.totalAlbums)
+        assertEquals(listOf(1, 3), state.albums.map { it.id })
+    }
+
+    @Test
+    fun filtro_porArtista_filtraLosAlbumesCorrectamente() {
+        val albums = listOf(
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(
+                1, name = "Buscando América", genre = "Salsa",
+                performers = listOf(com.example.misw4203_tsdc_vinilos.model.Performer(1, "Rubén Blades"))
+            ),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(
+                2, name = "Artaud", genre = "Rock",
+                performers = listOf(com.example.misw4203_tsdc_vinilos.model.Performer(2, "Pescado Rabioso"))
+            ),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(
+                3, name = "Siembra", genre = "Salsa",
+                performers = listOf(com.example.misw4203_tsdc_vinilos.model.Performer(1, "Rubén Blades"))
+            ),
+        )
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = albums))
+
+        viewModel.onSearchQueryChange("blades")
+
+        val state = viewModel.successState()
+        assertEquals(2, state.totalAlbums)
+        assertEquals(listOf(1, 3), state.albums.map { it.id })
+    }
+
+    @Test
+    fun filtro_sinCoincidencias_muestraEstadoExitoConListaVacia() {
+        val albums = listOf(
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(1, name = "Buscando América"),
+        )
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = albums))
+
+        viewModel.onSearchQueryChange("Inexistente")
+
+        val state = viewModel.successState()
+        assertEquals(0, state.totalAlbums)
+        assertTrue(state.albums.isEmpty())
+        assertEquals("Inexistente", state.searchQuery)
+    }
+
+    @Test
+    fun filtro_alCambiarTexto_reiniciaAPrimeraPagina() {
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = testAlbums(25)))
+        viewModel.nextPage()
+        assertEquals(2, viewModel.successState().currentPage)
+
+        viewModel.onSearchQueryChange("Álbum")
+
+        assertEquals(1, viewModel.successState().currentPage)
+    }
+
+    @Test
+    fun filtro_alLimpiarTexto_muestraTodosLosAlbumes() {
+        val albums = listOf(
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(1, name = "Buscando América"),
+            com.example.misw4203_tsdc_vinilos.testutil.testAlbum(2, name = "Artaud"),
+        )
+        val viewModel = viewModelWith(FakeVinilosApiService(albums = albums))
+
+        viewModel.onSearchQueryChange("Artaud")
+        assertEquals(1, viewModel.successState().totalAlbums)
+
+        viewModel.onSearchQueryChange("")
+        assertEquals(2, viewModel.successState().totalAlbums)
     }
 }
