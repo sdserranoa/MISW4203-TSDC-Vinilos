@@ -15,12 +15,14 @@ sealed interface AlbumListUiState {
      * @property albums álbumes de la página actual.
      * @property totalAlbums cantidad total de álbumes del catálogo.
      * @property currentPage página actual, empezando en 1.
+     * @property searchQuery consulta actual de búsqueda para filtrar por nombre, género o artista.
      */
     data class Success(
         val albums: List<Album>,
         val totalAlbums: Int,
         val currentPage: Int,
         val totalPages: Int,
+        val searchQuery: String = "",
     ) : AlbumListUiState {
         val hasPreviousPage: Boolean
             get() = currentPage > 1

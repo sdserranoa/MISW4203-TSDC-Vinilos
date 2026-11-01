@@ -4,8 +4,13 @@ import com.example.misw4203_tsdc_vinilos.model.Album
 import kotlinx.serialization.decodeFromString
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /** Verifica que el modelo [Album] interpreta la respuesta real de `GET /albums` de BackVynils. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [23, 26, 34, 35, 36])
 class AlbumJsonParsingTest {
 
     private val response = """

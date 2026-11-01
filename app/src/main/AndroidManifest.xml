@@ -28,11 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".AlbumDetailActivity"
-            android:exported="false"
-            android:label="@string/album_detail_title"
-            android:theme="@style/Theme.MISW4203TSDCVinilos" />
     </application>
 
 </manifest>

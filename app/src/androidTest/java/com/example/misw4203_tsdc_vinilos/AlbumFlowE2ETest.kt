@@ -159,22 +159,22 @@ class AlbumFlowE2ETest {
         composeTestRule.onNodeWithText("Elektra").assertIsDisplayed()
 
         // 7. Verificar Pestaña 1: Canciones
-        composeTestRule.onNodeWithText("Canciones").assertIsDisplayed()
-        composeTestRule.onNodeWithText("PISTAS DEL ÁLBUM").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Decisiones").assertIsDisplayed()
-        composeTestRule.onNodeWithText("5:05").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Desapariciones").assertIsDisplayed()
-        composeTestRule.onNodeWithText("6:29").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Canciones").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("PISTAS DEL ÁLBUM").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Decisiones").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("5:05").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("Desapariciones").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithText("6:29").performScrollTo().assertIsDisplayed()
 
         // 8. Cambiar a Pestaña 2: Intérpretes y verificar artista
-        composeTestRule.onNodeWithText("Intérpretes").performClick()
-        composeTestRule.onNodeWithText("INTÉRPRETES & MÚSICOS").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Intérpretes").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("INTÉRPRETES & MÚSICOS").performScrollTo().assertIsDisplayed()
         composeTestRule.onAllNodesWithText("Rubén Blades Bellido de Luna").onFirst().performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Músico / Solista").performScrollTo().assertIsDisplayed()
 
         // 9. Cambiar a Pestaña 3: Comentarios y verificar reseña
-        composeTestRule.onNodeWithText("Comentarios").performClick()
-        composeTestRule.onNodeWithText("RESEÑAS DESTACADAS").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Comentarios").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("RESEÑAS DESTACADAS").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Carlos Melómano").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("✓ Coleccionista Verificado").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("\"The most relevant album of Ruben Blades\"").performScrollTo().assertIsDisplayed()
