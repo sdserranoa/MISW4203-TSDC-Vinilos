@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.misw4203_tsdc_vinilos"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
