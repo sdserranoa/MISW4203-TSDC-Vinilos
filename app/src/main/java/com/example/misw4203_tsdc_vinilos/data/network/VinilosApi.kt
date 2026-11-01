@@ -66,7 +66,7 @@ object VinilosApi {
             .build()
     }
 
-    val service: VinilosApiService by lazy {
+    private val defaultService: VinilosApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(httpClient)
@@ -74,4 +74,10 @@ object VinilosApi {
             .build()
             .create(VinilosApiService::class.java)
     }
+
+    /** Permite inyectar un servicio alterno o falso en pruebas instrumentadas / de integración herméticas. */
+    var customService: VinilosApiService? = null
+
+    val service: VinilosApiService
+        get() = customService ?: defaultService
 }
