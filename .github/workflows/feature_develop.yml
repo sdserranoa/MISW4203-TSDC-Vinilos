@@ -6,11 +6,45 @@ on:
       - 'feature/**'
 
 jobs:
+  test-and-compose:
+    name: Run Unit & Compose UI Tests (JVM)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Unit & Compose Tests
+        run: ./gradlew testDebugUnitTest --continue
+
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-feature
+          path: app/build/reports/tests/testDebugUnitTest/
+          if-no-files-found: ignore
+
   create-pull-request:
+    name: Create Pull Request
+    needs: test-and-compose
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,13 +71,17 @@ jobs:
           PR_BODY="## Descripción
           Pull Request automático desde la rama \`${BRANCH_NAME}\`
           
+          ## Calidad y Pruebas
+          - Pruebas unitarias ejecutadas y aprobadas exitosamente
+          - Pruebas de UI (Jetpack Compose con Robolectric) ejecutadas y aprobadas en JVM
+          
           ## Cambios
           - Se implementaron los cambios de la historia de usuario
           
           ---
           *Este PR fue creado automáticamente por GitHub Actions*
-          *Trigger: Commit con #DONE*"
-          # test 2
+          *Trigger: Commit con #DONE y pruebas aprobadas*"
+
           # Verificar si ya existe un PR para esta rama
           EXISTING_PR=$(gh pr list --head "$BRANCH_NAME" --base develop --json number --jq '.[0].number')
           
@@ -57,4 +95,3 @@ jobs:
           else
             echo "Ya existe un Pull Request (#$EXISTING_PR) para esta rama"
           fi
-          #test 4
