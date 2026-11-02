@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    // Autoridades raíz recientes que Android 6.0 no incluye (issue #108)
+    implementation(libs.okhttp.tls)
 
     // Pruebas Unitarias y Compose en JVM con Robolectric
     testImplementation(libs.junit)

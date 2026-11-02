@@ -25,10 +25,14 @@ object VinilosApi {
      * Incluye normalización automática de URLs de Wikimedia Commons (HTTP 400 en miniaturas no estándar)
      * y fallback automático entre 10.0.2.2 y 127.0.0.1 (ADB reverse) para entornos
      * donde el cortafuegos de Windows bloquea la interfaz virtual del emulador.
+     * Confía en las autoridades del sistema más las raíces de [TrustedRootCertificates], para que
+     * Android 6.0 pueda descargar imágenes de servidores con certificados recientes (issue #108).
      */
     val httpClient: OkHttpClient by lazy {
+        val certificates = TrustedRootCertificates.handshakeCertificates
         OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
+            .sslSocketFactory(certificates.sslSocketFactory(), certificates.trustManager)
             .addInterceptor { chain ->
                 val request = chain.request()
                 val url = request.url
