@@ -24,6 +24,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Cobertura de pruebas JVM (unidad, integración y UI con Robolectric) con JaCoCo integrado en AGP.
+            // Reporte: ./gradlew createDebugUnitTestCoverageReport
+            enableUnitTestCoverage = true
+        }
         release {
             optimization {
                 enable = true
@@ -42,6 +47,14 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // Robolectric carga las clases de la app con su propio classloader (sin "code source location").
+            // Sin esto JaCoCo no registra esas clases y la cobertura queda en 0 %.
+            all { test ->
+                test.extensions.configure(org.gradle.testing.jacoco.plugins.JacocoTaskExtension::class.java) {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
         }
     }
 }
