@@ -1,5 +1,7 @@
 # Built application files
 *.apk
+# Excepción: APK de entrega de cada sprint, versionado para instalación directa
+!apk/*.apk
 *.ap_
 *.aab
 
