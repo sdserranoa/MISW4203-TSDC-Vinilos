@@ -208,6 +208,67 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
+## Instalación del APK (Sprint 1)
+
+El APK listo para instalar está en [`apk/vinilos-sprint1.apk`](apk/vinilos-sprint1.apk) y como archivo adjunto del release del Sprint 1 en [Releases](https://github.com/sdserranoa/MISW4203-TSDC-Vinilos/releases). Requiere **Android 6.0 (API 23) o superior**.
+
+> **Nota — versión mínima SDK 23:** la app está construida con Jetpack Compose, cuyas librerías actuales exigen como mínimo Android 6.0 (API 23); por eso no se instala en Android 5.x Lollipop. Los tutores del curso confirmaron que en apps con Jetpack Compose se puede usar SDK 23 como versión mínima.
+
+La app consume la API [BackVynils](https://github.com/TheSoftwareDesignLab/BackVynils), que se ejecuta con Docker en el computador donde se conecta el dispositivo o el emulador.
+
+### Paso 1. Levantar BackVynils con Docker
+
+```bash
+git clone https://github.com/TheSoftwareDesignLab/BackVynils.git
+cd BackVynils
+```
+
+En `docker-compose.yml`, cambie la imagen de la base de datos de `image: postgres` a **`image: postgres:16`**.
+
+> Sin versión, Docker descarga la última imagen de PostgreSQL (18 o superior), que cambió la ruta donde guarda los datos y no arranca con el volumen `./pgdata:/var/lib/postgresql/data` que define BackVynils.
+
+Inicie primero la base de datos y, cuando esté lista, la API:
+
+```bash
+docker compose up -d db
+# espere unos 20 segundos mientras PostgreSQL se inicializa por primera vez
+docker compose up -d --build web
+```
+
+Verifique que la API responde abriendo <http://localhost:3000/albums> en el navegador: debe listar 4 álbumes. Los datos de ejemplo se cargan automáticamente al iniciar la API.
+
+> Si el contenedor `web` se detiene en el primer arranque, es porque intentó conectarse antes de que la base de datos estuviera lista. Vuelva a ejecutar `docker compose up -d web`.
+
+### Paso 2. Instalar y abrir la app
+
+`adb` viene en las *Android SDK Platform-Tools* (incluidas en Android Studio).
+
+**Emulador de Android Studio (Android 6.0 o superior):**
+
+```bash
+adb install -r vinilos-sprint1.apk
+```
+
+También puede arrastrar el archivo APK sobre la ventana del emulador. No requiere configuración adicional.
+
+**Teléfono físico (Android 6.0 o superior):**
+
+1. Active las *Opciones de desarrollador* y la *Depuración USB*, y conecte el teléfono al computador por USB.
+2. Ejecute:
+
+   ```bash
+   adb reverse tcp:3000 tcp:3000
+   adb install -r vinilos-sprint1.apk
+   ```
+
+3. Abra **Vinilos**. Si desconecta el cable o reinicia `adb`, vuelva a ejecutar `adb reverse tcp:3000 tcp:3000`.
+
+> **Cómo encuentra la API:** el APK usa `http://127.0.0.1:3000/` y, si no responde, reintenta automáticamente con `http://10.0.2.2:3000/`. Así el mismo APK funciona en un teléfono conectado con `adb reverse` y en el emulador, donde `10.0.2.2` es el computador. Si la API no está disponible, la app muestra un mensaje de error con el botón **Reintentar**.
+
+El APK se generó con `./gradlew assembleDebug -Pvinilos.apiBaseUrl=http://127.0.0.1:3000/` (firmado con la clave de depuración) y se probó con instalación limpia en un Samsung Galaxy S24 FE con Android 16 y en un emulador Nexus 6P con Android 6.0.
+
+---
+
 ## Integración Continua (CI/CD) — Pipelines de GitHub Actions
 
 El repositorio cuenta con flujos de integración continua completamente automatizados y optimizados para alta velocidad de ejecución (~30-45 segundos por build):
