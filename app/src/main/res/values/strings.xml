@@ -63,4 +63,27 @@
     <string name="nav_albums">Álbumes</string>
     <string name="nav_artists">Artistas</string>
     <string name="nav_collectors">Coleccionistas</string>
+
+    <!-- HU04: Detalle de Artista -->
+    <string name="artist_detail_title">Detalle de Artista</string>
+    <string name="artist_detail_loading">Cargando perfil del artista…</string>
+    <string name="artist_detail_error">Ocurrió un error al cargar el artista. Por favor, comunícate con el administrador.</string>
+    <string name="artist_verified">Artista Verificado</string>
+    <string name="artist_band_label">Banda: %1$s</string>
+    <string name="artist_add_favorite">Agregar a favoritos</string>
+    <string name="artist_in_favorites">En favoritos</string>
+    <string name="artist_share">Compartir perfil</string>
+    <string name="artist_albums_section">Álbumes asociados (%1$d)</string>
+    <string name="artist_albums_empty">Este artista no tiene álbumes asociados registrados.</string>
+    <string name="artist_awards_section">Premios &amp; Reconocimientos</string>
+    <string name="artist_awards_empty">Este artista no registra premios en el catálogo.</string>
+    <string name="artist_collectors_section">Coleccionistas que lo siguen (%1$d)</string>
+    <string name="artist_collectors_empty">Aún no hay coleccionistas siguiendo a este artista.</string>
+    <string name="artist_members_section">Integrantes de la agrupación (%1$d)</string>
+    <string name="artist_members_empty">No hay integrantes registrados para esta agrupación.</string>
+    <string name="artist_birth_date">Nacimiento: %1$s</string>
+    <string name="artist_creation_date">Creación: %1$s</string>
+    <string name="artist_see_all">Ver todos</string>
+    <string name="artist_solo_label">Solista</string>
+    <string name="artist_band_tag">Banda</string>
 </resources>

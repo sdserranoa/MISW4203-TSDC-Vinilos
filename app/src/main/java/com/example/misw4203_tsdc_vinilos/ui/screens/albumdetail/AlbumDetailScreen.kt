@@ -79,6 +79,7 @@ fun AlbumDetailScreen(
     albumId: Int,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
     viewModel: AlbumDetailViewModel = viewModel(
         key = "album_detail_$albumId",
         factory = AlbumDetailViewModel.provideFactory(albumId),
@@ -91,6 +92,7 @@ fun AlbumDetailScreen(
         onBack = onBack,
         onRetry = viewModel::loadAlbum,
         modifier = modifier,
+        onPerformerClick = onPerformerClick,
     )
 }
 
@@ -102,6 +104,7 @@ fun AlbumDetailContent(
     modifier: Modifier = Modifier,
     onFavoriteClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
+    onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         modifier = modifier,
@@ -130,6 +133,7 @@ fun AlbumDetailContent(
             is AlbumDetailUiState.Success -> AlbumDetailBody(
                 album = uiState.album,
                 modifier = contentModifier,
+                onPerformerClick = onPerformerClick,
             )
         }
     }
@@ -192,6 +196,7 @@ enum class AlbumDetailTab(val titleRes: Int) {
 fun AlbumDetailBody(
     album: Album,
     modifier: Modifier = Modifier,
+    onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
 ) {
     val scrollState = rememberScrollState()
     var selectedTab by rememberSaveable { mutableStateOf(AlbumDetailTab.TRACKS) }
@@ -297,6 +302,7 @@ fun AlbumDetailBody(
             AlbumDetailTab.PERFORMERS -> AlbumPerformersSection(
                 album = album,
                 modifier = Modifier.fillMaxWidth(),
+                onPerformerClick = onPerformerClick,
             )
             AlbumDetailTab.COMMENTS -> AlbumCommentsSection(
                 album = album,
@@ -542,6 +548,7 @@ fun TrackListItem(
 fun AlbumPerformersSection(
     album: Album,
     modifier: Modifier = Modifier,
+    onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -593,6 +600,7 @@ fun AlbumPerformersSection(
                 album.performers.forEachIndexed { index, performer ->
                     PerformerListItem(
                         performer = performer,
+                        onClick = { onPerformerClick(performer.id, performer.isBand) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     if (index < album.performers.lastIndex) {
@@ -612,10 +620,12 @@ fun AlbumPerformersSection(
 fun PerformerListItem(
     performer: Performer,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

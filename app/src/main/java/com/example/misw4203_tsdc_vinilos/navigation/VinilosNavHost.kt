@@ -16,6 +16,7 @@ import com.example.misw4203_tsdc_vinilos.ui.components.VinilosBottomBar
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
 import com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail.AlbumDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albums.AlbumListScreen
+import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScreen
 import kotlinx.serialization.Serializable
 
 /** Catálogo de álbumes (HU01). */
@@ -25,6 +26,10 @@ data object AlbumListRoute
 /** Detalle de un álbum (HU02). */
 @Serializable
 data class AlbumDetailRoute(val albumId: Int)
+
+/** Detalle de un artista / agrupación (HU04). */
+@Serializable
+data class ArtistDetailRoute(val artistId: Int, val isBand: Boolean = false)
 
 /** Grafo de navegación de la aplicación; cada pantalla se registra con una ruta tipada. */
 @Composable
@@ -37,6 +42,7 @@ fun VinilosNavHost(
 
     val currentTab = when {
         currentDestination?.hasRoute<AlbumListRoute>() == true -> VinilosTab.ALBUMS
+        currentDestination?.hasRoute<ArtistDetailRoute>() == true -> VinilosTab.ARTISTS
         else -> VinilosTab.ALBUMS
     }
 
@@ -58,10 +64,10 @@ fun VinilosNavHost(
                             }
                         }
                         VinilosTab.ARTISTS -> {
-                            // Por ahora sin navegación según el requerimiento
+                            // Sección de artistas
                         }
                         VinilosTab.COLLECTORS -> {
-                            // Por ahora sin navegación según el requerimiento
+                            // Sección de coleccionistas
                         }
                     }
                 }
@@ -85,6 +91,26 @@ fun VinilosNavHost(
                 AlbumDetailScreen(
                     albumId = route.albumId,
                     onBack = { navController.popBackStack() },
+                    onPerformerClick = { performerId, isBand ->
+                        navController.navigate(ArtistDetailRoute(artistId = performerId, isBand = isBand))
+                    },
+                )
+            }
+            composable<ArtistDetailRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<ArtistDetailRoute>()
+                ArtistDetailScreen(
+                    artistId = route.artistId,
+                    isBand = route.isBand,
+                    onBack = { navController.popBackStack() },
+                    onAlbumClick = { albumId ->
+                        navController.navigate(AlbumDetailRoute(albumId))
+                    },
+                    onMusicianClick = { musicianId ->
+                        navController.navigate(ArtistDetailRoute(artistId = musicianId, isBand = false))
+                    },
+                    onBandClick = { bandId ->
+                        navController.navigate(ArtistDetailRoute(artistId = bandId, isBand = true))
+                    },
                 )
             }
         }
