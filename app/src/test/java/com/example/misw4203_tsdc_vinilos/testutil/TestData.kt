@@ -2,6 +2,8 @@ package com.example.misw4203_tsdc_vinilos.testutil
 
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
+import com.example.misw4203_tsdc_vinilos.model.Collector
+import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.model.Track
@@ -57,11 +59,44 @@ fun testTrack(
 
 fun testAlbums(count: Int): List<Album> = (1..count).map { testAlbum(id = it) }
 
-/** Servicio falso que responde con [albums] o lanza [error] si está definido. */
+/** Fixture de coleccionista con [albumCount] álbumes en su colección. */
+fun testCollector(
+    id: Int,
+    name: String = "Coleccionista $id",
+    email: String = "coleccionista$id@vinilos.co",
+    telephone: String = "300000$id",
+    albumCount: Int = 1,
+    favoritePerformers: List<Performer> = emptyList(),
+    comments: List<Comment> = emptyList(),
+) = Collector(
+    id = id,
+    name = name,
+    telephone = telephone,
+    email = email,
+    favoritePerformers = favoritePerformers,
+    comments = comments,
+    collectorAlbums = (1..albumCount).map { CollectorAlbum(id = id * 100 + it, price = 25.0, status = "Active") },
+)
+
+fun testCollectors(count: Int): List<Collector> = (1..count).map { testCollector(id = it) }
+
+/** Servicio falso que responde con [albums] y [collectors], o lanza [error] si está definido. */
 class FakeVinilosApiService(
     var albums: List<Album> = emptyList(),
     var error: Throwable? = null,
+    var collectors: List<Collector> = emptyList(),
 ) : VinilosApiService {
+
+    override suspend fun getCollectors(): List<Collector> {
+        error?.let { throw it }
+        return collectors
+    }
+
+    override suspend fun getCollector(collectorId: Int): Collector {
+        error?.let { throw it }
+        return collectors.firstOrNull { it.id == collectorId }
+            ?: throw NoSuchElementException("Collector with id $collectorId not found")
+    }
 
     override suspend fun getAlbums(): List<Album> {
         error?.let { throw it }
