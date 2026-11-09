@@ -1,5 +1,6 @@
 package com.example.misw4203_tsdc_vinilos.navigation
 
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -72,7 +73,11 @@ fun VinilosNavHost(
         NavHost(
             navController = navController,
             startDestination = AlbumListRoute,
-            modifier = Modifier.padding(innerPadding),
+            // Las barras del sistema ya se descuentan aquí: se marcan como consumidas para que el
+            // Scaffold y la barra superior de cada pantalla no vuelvan a sumar esos márgenes.
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         ) {
             composable<AlbumListRoute> {
                 AlbumListScreen(
