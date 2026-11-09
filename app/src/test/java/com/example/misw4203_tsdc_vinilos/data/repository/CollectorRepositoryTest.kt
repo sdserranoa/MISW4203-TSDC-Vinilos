@@ -10,13 +10,17 @@ import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
 import com.example.misw4203_tsdc_vinilos.testutil.testCollector
 import com.example.misw4203_tsdc_vinilos.testutil.testCollectorAlbum
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -136,6 +140,47 @@ class CollectorRepositoryTest {
         val detail = CollectorRepository(serviceAdapter = adapter).getCollectorDetail(100)
 
         assertEquals(1, detail.albums.size)
+    }
+
+    /** Dispatcher que delega en otro y cuenta cuántas tareas recibe. */
+    private class CountingDispatcher(private val delegate: CoroutineDispatcher) : CoroutineDispatcher() {
+        var dispatches = 0
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatches++
+            delegate.dispatch(context, block)
+        }
+    }
+
+    @Test
+    fun getCollectorSummaries_transformaLaRespuestaEnElDispatcherDeCalculo() = runTest {
+        val defaultDispatcher = CountingDispatcher(StandardTestDispatcher(testScheduler))
+        val repository = CollectorRepository(
+            serviceAdapter = FakeCollectorServiceAdapter(listOf(manolo)),
+            defaultDispatcher = defaultDispatcher,
+        )
+
+        repository.getCollectorSummaries()
+
+        assertTrue(defaultDispatcher.dispatches > 0)
+    }
+
+    @Test
+    fun getCollectorDetail_uneLasRespuestasEnElDispatcherDeCalculo() = runTest {
+        val defaultDispatcher = CountingDispatcher(StandardTestDispatcher(testScheduler))
+        val repository = CollectorRepository(
+            serviceAdapter = FakeCollectorServiceAdapter(
+                collectors = listOf(manolo),
+                albumsByCollector = mapOf(100 to listOf(testCollectorAlbum(buscandoAmerica))),
+            ),
+            defaultDispatcher = defaultDispatcher,
+        )
+
+        val detail = repository.getCollectorDetail(100)
+
+        assertEquals(1, detail.albums.size)
+        assertTrue(defaultDispatcher.dispatches > 0)
     }
 
     @Test

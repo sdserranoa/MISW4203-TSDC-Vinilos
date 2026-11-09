@@ -34,11 +34,14 @@ class CollectorRepository(
     /**
      * Detalle del coleccionista [collectorId] para HU06. Los datos del coleccionista y sus álbumes
      * vienen de dos recursos independientes, así que se consultan en paralelo: la espera total es
-     * la de la petición más lenta y no la suma de ambas. Si una falla, la otra se cancela.
+     * la de la petición más lenta y no la suma de ambas. Si una falla, la otra se cancela. La unión
+     * de ambas respuestas se hace fuera del hilo principal.
      */
     suspend fun getCollectorDetail(collectorId: Int): CollectorDetail = coroutineScope {
         val collector = async { serviceAdapter.getCollector(collectorId) }
         val albums = async { serviceAdapter.getCollectorAlbums(collectorId) }
-        collector.await().toDetail(albums.await())
+        val collectorResponse = collector.await()
+        val albumsResponse = albums.await()
+        withContext(defaultDispatcher) { collectorResponse.toDetail(albumsResponse) }
     }
 }
