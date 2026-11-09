@@ -90,7 +90,7 @@ class CollectorFlowIntegrationTest {
         setContent()
         openCollectorsTab()
 
-        composeTestRule.onNodeWithText("Buscar coleccionista por nombre…").performTextInput("Jaime")
+        composeTestRule.onNodeWithText("Buscar por nombre…").performTextInput("Jaime")
         composeTestRule.waitUntil(timeoutMillis = 5_000) {
             composeTestRule.onAllNodes(hasText("Manolo Bellon")).fetchSemanticsNodes().isEmpty()
         }
@@ -121,7 +121,7 @@ class CollectorFlowIntegrationTest {
     fun cambiarDePestana_conservaElFiltroDelListadoDeColeccionistas() {
         setContent()
         openCollectorsTab()
-        composeTestRule.onNodeWithText("Buscar coleccionista por nombre…").performTextInput("Jaime")
+        composeTestRule.onNodeWithText("Buscar por nombre…").performTextInput("Jaime")
         waitForText("1 coleccionista registrado")
 
         composeTestRule.onNodeWithText("Álbumes").performClick()

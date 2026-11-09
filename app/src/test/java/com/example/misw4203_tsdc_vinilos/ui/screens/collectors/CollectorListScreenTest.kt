@@ -117,7 +117,7 @@ class CollectorListScreenTest {
         var query = ""
         setContent(successState(), onSearchQueryChange = { query = it })
 
-        composeTestRule.onNodeWithText("Buscar coleccionista por nombre…").performTextInput("Jaime")
+        composeTestRule.onNodeWithText("Buscar por nombre…").performTextInput("Jaime")
 
         assertEquals("Jaime", query)
     }

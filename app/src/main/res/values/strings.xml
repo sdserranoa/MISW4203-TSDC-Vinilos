@@ -67,7 +67,7 @@
     <string name="collectors_loading">Cargando coleccionistas…</string>
     <string name="collectors_empty">No hay coleccionistas registrados.</string>
     <string name="collectors_error">Ocurrió un error al cargar los coleccionistas. Por favor, comunícate con el administrador.</string>
-    <string name="collector_search_placeholder">Buscar coleccionista por nombre…</string>
+    <string name="collector_search_placeholder">Buscar por nombre…</string>
     <string name="collector_search_clear">Limpiar búsqueda de coleccionistas</string>
     <string name="collector_search_empty">No se encontraron coleccionistas para \"%1$s\".</string>
     <plurals name="collector_album_count">

@@ -117,7 +117,7 @@ class CollectorFlowE2ETest {
         composeTestRule.onNodeWithText("3 álbumes").assertIsDisplayed()
 
         // 3. Filtrar por nombre (criterio 4)
-        composeTestRule.onNodeWithText("Buscar coleccionista por nombre…").performTextInput("Jaime")
+        composeTestRule.onNodeWithText("Buscar por nombre…").performTextInput("Jaime")
         waitForText("1 coleccionista registrado")
         composeTestRule.onNodeWithText("Jaime Monsalve").assertIsDisplayed()
         composeTestRule.onNodeWithText("Manolo Bellon").assertDoesNotExist()
