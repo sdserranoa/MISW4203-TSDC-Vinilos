@@ -112,7 +112,14 @@ fun testCollector(
 
 fun testCollectors(count: Int): List<Collector> = (1..count).map { testCollector(id = it) }
 
-/** Servicio falso que responde con datos de prueba o lanza [error] si está definido. */
+/** Relación coleccionista-álbum como la devuelve `GET /collectors/{id}/albums`. */
+fun testCollectorAlbum(album: Album, id: Int = album.id) =
+    CollectorAlbum(id = id, price = 25.0, status = "Active", album = album)
+
+/**
+ * Servicio falso que responde con datos de prueba, incluidos los álbumes de cada coleccionista en
+ * [collectorAlbums] (por id de coleccionista), o lanza [error] si está definido.
+ */
 class FakeVinilosApiService(
     var albums: List<Album> = emptyList(),
     var musicians: List<MusicianDetailResponse> = emptyList(),
@@ -120,7 +127,16 @@ class FakeVinilosApiService(
     var prizes: List<Prize> = emptyList(),
     var collectors: List<Collector> = emptyList(),
     var error: Throwable? = null,
+    var collectorAlbums: Map<Int, List<CollectorAlbum>> = emptyMap(),
 ) : VinilosApiService {
+
+    override suspend fun getCollectorAlbums(collectorId: Int): List<CollectorAlbum> {
+        error?.let { throw it }
+        if (collectors.none { it.id == collectorId }) {
+            throw NoSuchElementException("Collector with id $collectorId not found")
+        }
+        return collectorAlbums[collectorId].orEmpty()
+    }
 
     override suspend fun getCollectors(): List<Collector> {
         error?.let { throw it }

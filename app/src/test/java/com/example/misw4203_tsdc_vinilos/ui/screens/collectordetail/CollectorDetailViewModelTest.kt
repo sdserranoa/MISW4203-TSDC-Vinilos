@@ -2,12 +2,17 @@ package com.example.misw4203_tsdc_vinilos.ui.screens.collectordetail
 
 import com.example.misw4203_tsdc_vinilos.data.network.RetrofitCollectorServiceAdapter
 import com.example.misw4203_tsdc_vinilos.data.repository.CollectorRepository
+import com.example.misw4203_tsdc_vinilos.model.Comment
+import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
 import com.example.misw4203_tsdc_vinilos.testutil.MainDispatcherRule
+import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
 import com.example.misw4203_tsdc_vinilos.testutil.testCollector
+import com.example.misw4203_tsdc_vinilos.testutil.testCollectorAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +20,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.IOException
 
-/** Pruebas unitarias de la carga del detalle de un coleccionista. */
+/**
+ * Pruebas unitarias de la carga del detalle de un coleccionista (HU06), a través de las capas
+ * reales (ViewModel, Repository y Service Adapter) con un servicio HTTP falso.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [23, 26, 34, 35, 36])
@@ -34,16 +42,46 @@ class CollectorDetailViewModelTest {
         ),
     )
 
+    private fun CollectorDetailViewModel.successState() = uiState.value as CollectorDetailUiState.Success
+
+    private val serviceWithManolo = FakeVinilosApiService(
+        collectors = listOf(
+            testCollector(
+                id = 100,
+                name = "Manolo Bellon",
+                favoritePerformers = listOf(Performer(100, "Rubén Blades Bellido de Luna")),
+                comments = listOf(Comment(100, "The most relevant album of Ruben Blades", 5)),
+            ),
+            testCollector(101, "Jaime Monsalve"),
+        ),
+        collectorAlbums = mapOf(
+            100 to listOf(
+                testCollectorAlbum(testAlbum(100, name = "Buscando América", genre = "Salsa")),
+                testCollectorAlbum(testAlbum(101, name = "Poeta del pueblo", genre = "Salsa")),
+            ),
+        ),
+    )
+
     @Test
-    fun cargaInicial_muestraElColeccionistaSolicitado() {
-        val service = FakeVinilosApiService(
-            collectors = listOf(testCollector(100, "Manolo Bellon"), testCollector(101, "Jaime Monsalve")),
-        )
+    fun cargaInicial_muestraDatosAlbumesFavoritosYComentariosDelColeccionista() {
+        val viewModel = viewModelWith(100, serviceWithManolo)
 
-        val viewModel = viewModelWith(101, service)
+        val collector = viewModel.successState().collector
+        assertEquals("Manolo Bellon", collector.name)
+        assertEquals(listOf("Buscando América", "Poeta del pueblo"), collector.albums.map { it.name })
+        assertEquals(listOf("Rubén Blades Bellido de Luna"), collector.favoritePerformers.map { it.name })
+        assertEquals(listOf("The most relevant album of Ruben Blades"), collector.comments.map { it.description })
+    }
 
-        val state = viewModel.uiState.value as CollectorDetailUiState.Success
-        assertEquals("Jaime Monsalve", state.collector.name)
+    @Test
+    fun cargaInicial_coleccionistaSinRegistros_muestraListasVacias() {
+        val viewModel = viewModelWith(101, serviceWithManolo)
+
+        val collector = viewModel.successState().collector
+        assertEquals("Jaime Monsalve", collector.name)
+        assertTrue(collector.albums.isEmpty())
+        assertTrue(collector.favoritePerformers.isEmpty())
+        assertTrue(collector.comments.isEmpty())
     }
 
     @Test
@@ -55,7 +93,7 @@ class CollectorDetailViewModelTest {
 
     @Test
     fun cargaInicial_conColeccionistaInexistente_muestraEstadoError() {
-        val viewModel = viewModelWith(999, FakeVinilosApiService(collectors = listOf(testCollector(100))))
+        val viewModel = viewModelWith(999, serviceWithManolo)
 
         assertEquals(CollectorDetailUiState.Error, viewModel.uiState.value)
     }
@@ -66,10 +104,10 @@ class CollectorDetailViewModelTest {
         val viewModel = viewModelWith(100, service)
 
         service.error = null
-        service.collectors = listOf(testCollector(100, "Manolo Bellon"))
+        service.collectors = serviceWithManolo.collectors
+        service.collectorAlbums = serviceWithManolo.collectorAlbums
         viewModel.loadCollector()
 
-        val state = viewModel.uiState.value as CollectorDetailUiState.Success
-        assertEquals("Manolo Bellon", state.collector.name)
+        assertEquals(2, viewModel.successState().collector.albums.size)
     }
 }

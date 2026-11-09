@@ -1,6 +1,7 @@
 package com.example.misw4203_tsdc_vinilos.data.network
 
 import com.example.misw4203_tsdc_vinilos.model.Collector
+import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import kotlinx.serialization.decodeFromString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -79,6 +80,46 @@ class CollectorJsonParsingTest {
         assertTrue(jaime.collectorAlbums.isEmpty())
         assertTrue(jaime.favoritePerformers.isEmpty())
         assertTrue(jaime.comments.isEmpty())
+    }
+
+    /** Respuesta real de `GET /collectors/100/albums` (HU06): incluye el álbum y el coleccionista. */
+    private val collectorAlbumsResponse = """
+        [
+          {
+            "id": 100,
+            "price": 35,
+            "status": "Active",
+            "album": {
+              "id": 100,
+              "name": "Buscando América",
+              "cover": "https://i.pinimg.com/564x/aa/5f/ed/aa5fed7fac61cc8f41d1e79db917a7cd.jpg",
+              "releaseDate": "1984-08-01T05:00:00.000Z",
+              "description": "Buscando América es el primer álbum de la banda de Rubén Blades y Seis del Solar.",
+              "genre": "Salsa",
+              "recordLabel": "Elektra"
+            },
+            "collector": {
+              "id": 100,
+              "name": "Manolo Bellon",
+              "telephone": "3502457896",
+              "email": "manollo@caracol.com.co"
+            }
+          }
+        ]
+    """.trimIndent()
+
+    @Test
+    fun respuestaDeAlbumesDelColeccionista_incluyeElAlbumCompleto() {
+        val collectorAlbums = VinilosApi.json.decodeFromString<List<CollectorAlbum>>(collectorAlbumsResponse)
+
+        val owned = collectorAlbums.single()
+        assertEquals(35.0, owned.price, 0.0)
+        assertEquals("Active", owned.status)
+        val album = requireNotNull(owned.album)
+        assertEquals("Buscando América", album.name)
+        assertEquals("Salsa", album.genre)
+        assertEquals("1984", album.releaseYear)
+        assertTrue(album.cover.startsWith("https://"))
     }
 
     @Test

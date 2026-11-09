@@ -1,7 +1,9 @@
 package com.example.misw4203_tsdc_vinilos.data.network
 
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
+import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
 import com.example.misw4203_tsdc_vinilos.testutil.testCollector
+import com.example.misw4203_tsdc_vinilos.testutil.testCollectorAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,6 +38,20 @@ class CollectorServiceAdapterTest {
         )
 
         assertEquals("Jaime Monsalve", adapter.getCollector(101).name)
+    }
+
+    @Test
+    fun getCollectorAlbums_devuelveLosAlbumesCompletosDelColeccionista() = runTest {
+        val adapter = RetrofitCollectorServiceAdapter(
+            api = FakeVinilosApiService(
+                collectors = collectors,
+                collectorAlbums = mapOf(100 to listOf(testCollectorAlbum(testAlbum(100, name = "Buscando América")))),
+            ),
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+
+        assertEquals(listOf("Buscando América"), adapter.getCollectorAlbums(100).map { it.album?.name })
+        assertTrue(adapter.getCollectorAlbums(101).isEmpty())
     }
 
     @Test

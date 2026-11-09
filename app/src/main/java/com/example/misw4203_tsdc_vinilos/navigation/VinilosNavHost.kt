@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -49,7 +49,7 @@ fun VinilosNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentTab = navBackStackEntry?.destination.toTab()
+    val currentTab = remember(navBackStackEntry) { navController.currentTab() }
 
     Scaffold(
         modifier = modifier,
@@ -120,18 +120,27 @@ fun VinilosNavHost(
                 CollectorDetailScreen(
                     collectorId = route.collectorId,
                     onBack = { navController.popBackStack() },
+                    onAlbumClick = { albumId ->
+                        navController.navigate(AlbumDetailRoute(albumId))
+                    },
                 )
             }
         }
     }
 }
 
-/** Pestaña de la barra inferior a la que pertenece el destino actual. */
-private fun NavDestination?.toTab(): VinilosTab = when {
-    this == null -> VinilosTab.ALBUMS
-    hasRoute<CollectorListRoute>() || hasRoute<CollectorDetailRoute>() -> VinilosTab.COLLECTORS
-    hasRoute<ArtistDetailRoute>() -> VinilosTab.ARTISTS
-    else -> VinilosTab.ALBUMS
+/**
+ * Pestaña activa de la barra inferior. Al cambiar de pestaña, las pantallas de la anterior salen de
+ * la pila, así que la sección de coleccionistas está activa mientras su listado esté en la pila,
+ * incluso cuando encima se abre el detalle de un álbum o de un artista desde un coleccionista.
+ */
+private fun NavHostController.currentTab(): VinilosTab {
+    val collectorsInBackStack = runCatching { getBackStackEntry<CollectorListRoute>() }.isSuccess
+    return when {
+        collectorsInBackStack -> VinilosTab.COLLECTORS
+        currentDestination?.hasRoute<ArtistDetailRoute>() == true -> VinilosTab.ARTISTS
+        else -> VinilosTab.ALBUMS
+    }
 }
 
 /**

@@ -54,7 +54,7 @@ MISW4203-TSDC-Vinilos/
 │   │   │   │   │   │   ├── albums/         # HU01: pantalla, ViewModel y estado de UI
 │   │   │   │   │   │   ├── albumdetail/    # HU02: detalle de álbum
 │   │   │   │   │   │   ├── collectors/     # HU05: listado de coleccionistas
-│   │   │   │   │   │   └── collectordetail/ # Detalle de coleccionista
+│   │   │   │   │   │   └── collectordetail/ # HU06: detalle de coleccionista
 │   │   │   │   │   └── theme/
 │   │   │   │   ├── data/
 │   │   │   │   │   ├── network/            # Retrofit, OkHttp, endpoints de BackVynils y Service Adapters
