@@ -51,6 +51,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,7 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
+import com.example.misw4203_tsdc_vinilos.ui.components.GlideImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.ArtistDetail
@@ -148,7 +150,7 @@ fun ArtistDetailContent(
                             IconButton(onClick = onBack) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_arrow_back),
-                                    contentDescription = stringResource(R.string.back_to_catalog),
+                                    contentDescription = stringResource(R.string.artist_back),
                                     tint = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
@@ -258,17 +260,24 @@ private fun ArtistHeroSection(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        val heroBackgroundBrush = remember {
+            Brush.verticalGradient(
+                colors = listOf(
+                    Amber.copy(alpha = 0.08f),
+                    Color.Transparent
+                )
+            )
+        }
+        val vinylRingBrush = remember {
+            Brush.sweepGradient(
+                listOf(Amber, AmberContainer, AmberLight, Amber)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Amber.copy(alpha = 0.08f),
-                            Color.Transparent
-                        )
-                    )
-                )
+                .background(heroBackgroundBrush)
                 .padding(16.dp)
         ) {
             Column(
@@ -286,16 +295,16 @@ private fun ArtistHeroSection(
                             .clip(CircleShape)
                             .border(
                                 width = 3.dp,
-                                brush = Brush.sweepGradient(
-                                    listOf(Amber, AmberContainer, AmberLight, Amber)
-                                ),
+                                brush = vinylRingBrush,
                                 shape = CircleShape
                             )
                     ) {
-                        AsyncImage(
+                        GlideImage(
                             model = artist.normalizedImage,
                             contentDescription = stringResource(R.string.performer_avatar_description, artist.name),
                             contentScale = ContentScale.Crop,
+                            overrideWidthPx = 350,
+                            overrideHeightPx = 350,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
@@ -515,13 +524,18 @@ private fun ArtistMembersSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 2.dp)
         ) {
-            items(members, key = { it.id }) { member ->
+            items(
+                items = members,
+                key = { it.id },
+                contentType = { "member_avatar" }
+            ) { member ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     modifier = Modifier
                         .width(100.dp)
-                        .clickable { onMusicianClick(member.id) }
+                        .semantics(mergeDescendants = true) {}
+                        .clickable(role = Role.Button, onClick = { onMusicianClick(member.id) })
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -534,10 +548,12 @@ private fun ArtistMembersSection(
                                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .border(1.dp, Amber.copy(alpha = 0.5f), CircleShape)
                         ) {
-                            AsyncImage(
+                            GlideImage(
                                 model = member.normalizedImage,
                                 contentDescription = member.name,
                                 contentScale = ContentScale.Crop,
+                                overrideWidthPx = 180,
+                                overrideHeightPx = 180,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -609,7 +625,11 @@ private fun ArtistAlbumsSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 2.dp)
             ) {
-                items(albums, key = { it.id }) { album ->
+                items(
+                    items = albums,
+                    key = { it.id },
+                    contentType = { "album_card" }
+                ) { album ->
                     ArtistAlbumCard(album = album, onClick = { onAlbumClick(album.id) })
                 }
             }
@@ -628,7 +648,8 @@ private fun ArtistAlbumCard(
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier
             .width(136.dp)
-            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {}
+            .clickable(role = Role.Button, onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             Box(
@@ -638,10 +659,12 @@ private fun ArtistAlbumCard(
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             ) {
-                AsyncImage(
+                GlideImage(
                     model = album.cover,
                     contentDescription = stringResource(R.string.album_cover_description, album.name),
                     contentScale = ContentScale.Crop,
+                    overrideWidthPx = 350,
+                    overrideHeightPx = 350,
                     modifier = Modifier.fillMaxSize()
                 )
 
@@ -849,7 +872,11 @@ private fun ArtistCollectorsSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 2.dp)
             ) {
-                items(collectors, key = { it.id }) { collector ->
+                items(
+                    items = collectors,
+                    key = { it.id },
+                    contentType = { "collector_avatar" }
+                ) { collector ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.width(76.dp)

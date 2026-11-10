@@ -1,9 +1,13 @@
 package com.example.misw4203_tsdc_vinilos.model
 
+import androidx.compose.runtime.Immutable
+
+private val WIKIMEDIA_THUMB_REGEX = Regex("/thumb/(.+)/[^/]+$")
+
 /**
  * Modelo de dominio para la pantalla de detalle de un artista o agrupación (HU04).
- * Unifica tanto a músicos solistas como a agrupaciones musicales (bandas), incorporando
- * álbumes asociados, premios, coleccionistas que lo siguen y relaciones de bandas/miembros.
+ * Marcado con [@Immutable] para garantizar a Compose que las propiedades de lista
+ * no mutarán, permitiendo a los composables omitir (skip) recomposiciones innecesarias.
  *
  * @property id Identificador único.
  * @property name Nombre artístico o de la agrupación.
@@ -18,6 +22,7 @@ package com.example.misw4203_tsdc_vinilos.model
  * @property prizes Premios y galardones reconocidos.
  * @property collectors Coleccionistas que tienen al artista en sus favoritos.
  */
+@Immutable
 data class ArtistDetail(
     val id: Int,
     val name: String,
@@ -33,31 +38,26 @@ data class ArtistDetail(
     val collectors: List<Collector> = emptyList(),
 ) {
     /**
-     * Sanitiza URLs de miniaturas problemáticas de Wikimedia Commons para obtener la imagen
-     * original en alta fidelidad y evitar errores HTTP 400.
+     * URL sanitizada de la imagen calculada una sola vez al instanciar el modelo,
+     * evitando la recompilación de expresiones regulares y re-asignaciones en memoria.
      */
-    val normalizedImage: String
-        get() {
-            if (image.contains("upload.wikimedia.org") && image.contains("/thumb/")) {
-                return image.replace(Regex("/thumb/(.+)/[^/]+$"), "/$1")
-            }
-            return image
-        }
+    val normalizedImage: String = if (image.contains("upload.wikimedia.org") && image.contains("/thumb/")) {
+        image.replace(WIKIMEDIA_THUMB_REGEX, "/$1")
+    } else {
+        image
+    }
 
-    val dateLabel: String
-        get() = if (isBand) "Creación" else "Nacimiento"
+    val dateLabel: String = if (isBand) "Creación" else "Nacimiento"
 
-    val formattedDate: String
-        get() {
-            val raw = if (isBand) creationDate else birthDate
-            if (raw.isBlank()) return ""
-            return raw.take(10)
-        }
+    /** Fecha formateada a nivel de año-mes-día precalculada para evitar substrings en cada frame. */
+    val formattedDate: String = (if (isBand) creationDate else birthDate).take(10)
 }
 
 /**
  * Premio proyectado para visualización en la ficha del artista.
+ * Marcado con [@Immutable] para permitir saltos de recomposición en [ArtistAwardsSection].
  */
+@Immutable
 data class ArtistPrizeItem(
     val id: Int,
     val name: String,
@@ -65,6 +65,5 @@ data class ArtistPrizeItem(
     val premiationDate: String,
     val description: String = "",
 ) {
-    val year: String
-        get() = premiationDate.take(4).ifBlank { "" }
+    val year: String = premiationDate.take(4).ifBlank { "" }
 }

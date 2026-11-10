@@ -46,6 +46,7 @@ class ArtistDetailViewModel(
     }
 
     companion object {
+        @JvmOverloads
         fun provideFactory(
             artistId: Int,
             isBand: Boolean? = null,
