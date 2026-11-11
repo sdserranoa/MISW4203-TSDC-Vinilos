@@ -22,8 +22,10 @@ class AlbumRepositoryAddTrackTest {
 
         override suspend fun getAlbums(): List<Album> = emptyList()
 
-        override suspend fun getAlbum(id: Int): Album =
-            Album(id = id, name = "Abbey Road", cover = "", releaseDate = "1969", description = "", genre = "Rock", recordLabel = "EMI")
+        override suspend fun getAlbum(albumId: Int): Album =
+            Album(id = albumId, name = "Abbey Road", cover = "", releaseDate = "1969", description = "", genre = "Rock", recordLabel = "EMI")
+
+        override suspend fun createAlbum(album: Album): Album = album
 
         override suspend fun postTrack(albumId: Int, track: TrackRequest): Track {
             postError?.let { throw it }

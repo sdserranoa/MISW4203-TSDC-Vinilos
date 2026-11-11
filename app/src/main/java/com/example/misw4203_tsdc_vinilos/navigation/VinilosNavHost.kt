@@ -18,6 +18,7 @@ import androidx.navigation.toRoute
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosBottomBar
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
 import com.example.misw4203_tsdc_vinilos.ui.screens.addtrack.AddTrackScreen
+import com.example.misw4203_tsdc_vinilos.ui.screens.albumCreate.AlbumCreateScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail.AlbumDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albums.AlbumListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScreen
@@ -53,6 +54,10 @@ data object CollectorListRoute
 /** Detalle de un coleccionista. */
 @Serializable
 data class CollectorDetailRoute(val collectorId: Int)
+
+/** Crear un nuevo álbum (HU07). */
+@Serializable
+data object AlbumCreateRoute
 
 /** Grafo de navegación de la aplicación; cada pantalla se registra con una ruta tipada. */
 @Composable
@@ -171,6 +176,12 @@ fun VinilosNavHost(
                     onPerformerClick = { performerId, isBand ->
                         navController.navigate(ArtistDetailRoute(artistId = performerId, isBand = isBand))
                     },
+                )
+            }
+            composable<AlbumCreateRoute> {
+                AlbumCreateScreen(
+                    onAlbumSubmit = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() },
                 )
             }
         }

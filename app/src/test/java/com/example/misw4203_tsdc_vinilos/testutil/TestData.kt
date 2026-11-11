@@ -161,6 +161,13 @@ class FakeVinilosApiService(
             ?: throw NoSuchElementException("Album with id $albumId not found")
     }
 
+    override suspend fun createAlbum(album: Album): Album {
+        (postTrackError ?: error)?.let { throw it }
+        val created = if (album.id == 0) album.copy(id = (albums.maxOfOrNull { it.id } ?: 0) + 1) else album
+        albums = albums + created
+        return created
+    }
+
     override suspend fun getMusicians(): List<MusicianDetailResponse> {
         error?.let { throw it }
         return musicians
@@ -198,5 +205,4 @@ class FakeVinilosApiService(
         }
         return newTrack
     }
-
 }
