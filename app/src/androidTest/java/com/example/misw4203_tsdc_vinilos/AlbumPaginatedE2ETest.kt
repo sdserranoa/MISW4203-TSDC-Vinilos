@@ -11,9 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
-import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
-import com.example.misw4203_tsdc_vinilos.model.Collector
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -54,14 +52,11 @@ class AlbumPaginatedE2ETest {
 
         private val testAlbums = generateTestAlbums(15)
 
-        private val fakeService = object : VinilosApiService {
+        private val fakeService = object : BaseFakeVinilosApiService() {
             override suspend fun getAlbums(): List<Album> = testAlbums
             override suspend fun getAlbum(albumId: Int): Album =
                 testAlbums.firstOrNull { it.id == albumId }
                     ?: throw NoSuchElementException("Album $albumId not found")
-            override suspend fun getCollectors(): List<Collector> = emptyList()
-            override suspend fun getCollector(collectorId: Int): Collector =
-                throw NoSuchElementException("Collector $collectorId not found")
         }
 
         @JvmStatic

@@ -1,11 +1,16 @@
 package com.example.misw4203_tsdc_vinilos.testutil
 
+import com.example.misw4203_tsdc_vinilos.data.network.BandDetailResponse
+import com.example.misw4203_tsdc_vinilos.data.network.MusicianDetailResponse
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
+import com.example.misw4203_tsdc_vinilos.model.ArtistDetail
+import com.example.misw4203_tsdc_vinilos.model.ArtistPrizeItem
 import com.example.misw4203_tsdc_vinilos.model.Collector
 import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
+import com.example.misw4203_tsdc_vinilos.model.Prize
 import com.example.misw4203_tsdc_vinilos.model.Track
 
 /** Fixture de álbum. La carátula vacía evita que Coil realice peticiones de red durante las pruebas. */
@@ -57,6 +62,33 @@ fun testTrack(
     duration = duration,
 )
 
+fun testArtistDetail(
+    id: Int,
+    name: String = "Gustavo Cerati",
+    description: String = "Cantautor, guitarrista y compositor argentino.",
+    birthDate: String = "1959-08-11",
+    creationDate: String = "",
+    isBand: Boolean = false,
+    albums: List<Album> = emptyList(),
+    relatedBands: List<Performer> = emptyList(),
+    members: List<Performer> = emptyList(),
+    prizes: List<ArtistPrizeItem> = emptyList(),
+    collectors: List<Collector> = emptyList(),
+) = ArtistDetail(
+    id = id,
+    name = name,
+    image = "",
+    description = description,
+    birthDate = birthDate,
+    creationDate = creationDate,
+    isBand = isBand,
+    albums = albums,
+    relatedBands = relatedBands,
+    members = members,
+    prizes = prizes,
+    collectors = collectors,
+)
+
 fun testAlbums(count: Int): List<Album> = (1..count).map { testAlbum(id = it) }
 
 /** Fixture de coleccionista con [albumCount] álbumes en su colección. */
@@ -80,11 +112,14 @@ fun testCollector(
 
 fun testCollectors(count: Int): List<Collector> = (1..count).map { testCollector(id = it) }
 
-/** Servicio falso que responde con [albums] y [collectors], o lanza [error] si está definido. */
+/** Servicio falso que responde con datos de prueba o lanza [error] si está definido. */
 class FakeVinilosApiService(
     var albums: List<Album> = emptyList(),
-    var error: Throwable? = null,
+    var musicians: List<MusicianDetailResponse> = emptyList(),
+    var bands: List<BandDetailResponse> = emptyList(),
+    var prizes: List<Prize> = emptyList(),
     var collectors: List<Collector> = emptyList(),
+    var error: Throwable? = null,
 ) : VinilosApiService {
 
     override suspend fun getCollectors(): List<Collector> {
@@ -108,4 +143,32 @@ class FakeVinilosApiService(
         return albums.firstOrNull { it.id == albumId }
             ?: throw NoSuchElementException("Album with id $albumId not found")
     }
+
+    override suspend fun getMusicians(): List<MusicianDetailResponse> {
+        error?.let { throw it }
+        return musicians
+    }
+
+    override suspend fun getMusician(musicianId: Int): MusicianDetailResponse {
+        error?.let { throw it }
+        return musicians.firstOrNull { it.id == musicianId }
+            ?: throw NoSuchElementException("Musician with id $musicianId not found")
+    }
+
+    override suspend fun getBands(): List<BandDetailResponse> {
+        error?.let { throw it }
+        return bands
+    }
+
+    override suspend fun getBand(bandId: Int): BandDetailResponse {
+        error?.let { throw it }
+        return bands.firstOrNull { it.id == bandId }
+            ?: throw NoSuchElementException("Band with id $bandId not found")
+    }
+
+    override suspend fun getPrizes(): List<Prize> {
+        error?.let { throw it }
+        return prizes
+    }
+
 }

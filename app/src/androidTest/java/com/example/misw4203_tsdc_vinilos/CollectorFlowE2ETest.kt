@@ -12,7 +12,6 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
-import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
 import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
@@ -37,7 +36,7 @@ import java.io.IOException
 class CollectorFlowE2ETest {
 
     /** Servicio falso cuyos datos se ajustan en cada prueba antes de abrir la pestaña. */
-    private class CollectorFakeService : VinilosApiService {
+    private class CollectorFakeService : BaseFakeVinilosApiService() {
         var collectors: List<Collector> = emptyList()
         var collectorsError: Exception? = null
 
