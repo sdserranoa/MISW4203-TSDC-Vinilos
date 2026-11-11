@@ -1,15 +1,16 @@
 package com.example.misw4203_tsdc_vinilos.flow
 
-import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import com.example.misw4203_tsdc_vinilos.data.network.MusicianDetailResponse
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
@@ -61,6 +62,14 @@ class CollectorDetailFlowIntegrationTest {
             testCollector(101, "Jaime Monsalve", albumCount = 0),
         ),
         collectorAlbums = mapOf(100 to listOf(testCollectorAlbum(buscandoAmerica))),
+        musicians = listOf(
+            MusicianDetailResponse(
+                id = 100,
+                name = "Rubén Blades Bellido de Luna",
+                description = "Cantante, compositor, músico, actor, abogado, político y activista panameño.",
+                birthDate = "1948-07-16T00:00:00.000Z",
+            ),
+        ),
     )
 
     @Before
@@ -143,13 +152,30 @@ class CollectorDetailFlowIntegrationTest {
         composeTestRule.onNode(hasScrollToNodeAction())
             .performScrollToNode(hasText("Rubén Blades Bellido de Luna"))
         composeTestRule.onNodeWithText("Rubén Blades Bellido de Luna").assertIsDisplayed()
-        // La navegación al detalle de artistas se conecta cuando HU04 esté integrada
-        composeTestRule.onNodeWithText("Rubén Blades Bellido de Luna").assertHasNoClickAction()
 
         composeTestRule.onNodeWithText("Comentarios (1)").performClick()
         composeTestRule.onNode(hasScrollToNodeAction())
             .performScrollToNode(hasText("The most relevant album of Ruben Blades"))
         composeTestRule.onNodeWithText("The most relevant album of Ruben Blades").assertIsDisplayed()
+    }
+
+    @Test
+    fun artistaFavorito_navegaAlDetalleDelArtistaYVolverRegresaAlColeccionista() {
+        openCollectorDetail("Manolo Bellon")
+        waitForText("Artistas (1)")
+        composeTestRule.onNodeWithText("Artistas (1)").performClick()
+        composeTestRule.onNode(hasScrollToNodeAction())
+            .performScrollToNode(hasText("Rubén Blades Bellido de Luna"))
+
+        composeTestRule.onNodeWithText("Rubén Blades Bellido de Luna").performClick()
+        waitForText("Detalle de Artista")
+
+        composeTestRule.onAllNodes(hasText("Rubén Blades Bellido de Luna")).onFirst().assertExists()
+        composeTestRule.onNodeWithText("Coleccionistas").assertIsSelected()
+
+        composeTestRule.onNodeWithContentDescription("Volver atrás").performClick()
+        waitForText("Detalle de Coleccionista")
+        composeTestRule.onNodeWithText("Artistas (1)").assertIsSelected()
     }
 
     @Test

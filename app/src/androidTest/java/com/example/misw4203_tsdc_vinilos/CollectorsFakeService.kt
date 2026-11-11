@@ -1,5 +1,7 @@
 package com.example.misw4203_tsdc_vinilos
 
+import com.example.misw4203_tsdc_vinilos.data.network.BandDetailResponse
+import com.example.misw4203_tsdc_vinilos.data.network.MusicianDetailResponse
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
 import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
@@ -15,6 +17,8 @@ internal class CollectorsFakeService : BaseFakeVinilosApiService() {
     var collectors: List<Collector> = emptyList()
     var collectorAlbums: Map<Int, List<CollectorAlbum>> = emptyMap()
     var collectorsError: Exception? = null
+    var musicians: List<MusicianDetailResponse> = emptyList()
+    var bands: List<BandDetailResponse> = emptyList()
 
     override suspend fun getAlbums(): List<Album> = albums
 
@@ -37,7 +41,19 @@ internal class CollectorsFakeService : BaseFakeVinilosApiService() {
         return collectorAlbums[collectorId].orEmpty()
     }
 
+    override suspend fun getMusicians(): List<MusicianDetailResponse> = musicians
+
+    override suspend fun getMusician(musicianId: Int): MusicianDetailResponse =
+        musicians.firstOrNull { it.id == musicianId } ?: super.getMusician(musicianId)
+
+    override suspend fun getBands(): List<BandDetailResponse> = bands
+
+    override suspend fun getBand(bandId: Int): BandDetailResponse =
+        bands.firstOrNull { it.id == bandId } ?: super.getBand(bandId)
+
     fun reset() {
+        musicians = emptyList()
+        bands = emptyList()
         albums = emptyList()
         collectors = emptyList()
         collectorAlbums = emptyMap()

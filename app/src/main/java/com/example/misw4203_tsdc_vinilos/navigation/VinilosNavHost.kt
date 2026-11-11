@@ -128,6 +128,9 @@ fun VinilosNavHost(
                     onAlbumClick = { albumId ->
                         navController.navigate(AlbumDetailRoute(albumId))
                     },
+                    onPerformerClick = { performerId, isBand ->
+                        navController.navigate(ArtistDetailRoute(artistId = performerId, isBand = isBand))
+                    },
                 )
             }
         }

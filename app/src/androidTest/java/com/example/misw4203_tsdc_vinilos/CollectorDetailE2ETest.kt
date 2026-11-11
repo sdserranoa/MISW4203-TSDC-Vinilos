@@ -17,6 +17,7 @@ import com.example.misw4203_tsdc_vinilos.CollectorsTestData.nightAtTheOpera
 import com.example.misw4203_tsdc_vinilos.CollectorsTestData.ownedAlbum
 import com.example.misw4203_tsdc_vinilos.CollectorsTestData.queen
 import com.example.misw4203_tsdc_vinilos.CollectorsTestData.rubenBlades
+import com.example.misw4203_tsdc_vinilos.data.network.BandDetailResponse
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import org.junit.AfterClass
@@ -33,7 +34,7 @@ import java.io.IOException
  *
  * Recorren la app desde [MainActivity]: pestaña Coleccionistas, detalle de un coleccionista con su
  * teléfono, correo, álbumes, artistas favoritos y comentarios, navegación al detalle de un álbum y
- * regreso, además de los mensajes de listados vacíos y de error. El servicio HTTP se reemplaza por
+ * de un artista con su regreso, además de los mensajes de listados vacíos y de error. El servicio HTTP se reemplaza por
  * uno falso en [VinilosApi], así que las pruebas no dependen del backend.
  */
 @RunWith(AndroidJUnit4::class)
@@ -81,6 +82,14 @@ class CollectorDetailE2ETest {
             ),
         )
         fakeService.collectorAlbums = mapOf(100 to listOf(ownedAlbum(buscandoAmerica), ownedAlbum(nightAtTheOpera)))
+        fakeService.bands = listOf(
+            BandDetailResponse(
+                id = queen.id,
+                name = queen.name,
+                description = "Banda británica de rock formada en Londres en 1970.",
+                creationDate = queen.creationDate,
+            ),
+        )
     }
 
     private fun waitForText(text: String) {
@@ -126,6 +135,14 @@ class CollectorDetailE2ETest {
         composeTestRule.onNodeWithText("Rubén Blades Bellido de Luna").assertIsDisplayed()
         scrollTo("Queen")
         composeTestRule.onNodeWithText("Banda / Agrupación").assertIsDisplayed()
+
+        // 4b. Navegar al detalle de un artista favorito y regresar (criterio 3)
+        composeTestRule.onNodeWithText("Queen").performClick()
+        waitForText("Detalle de Artista")
+        composeTestRule.onNodeWithText("Coleccionistas").assertIsSelected()
+        composeTestRule.onNodeWithContentDescription("Volver atrás").performClick()
+        waitForText("Detalle de Coleccionista")
+        composeTestRule.onNodeWithText("Artistas (2)").assertIsSelected()
 
         // 5. Comentarios con su calificación (criterio 1)
         scrollTo("Comentarios (1)")
