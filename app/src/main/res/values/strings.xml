@@ -10,13 +10,11 @@
     <string name="album_cover_description">Carátula del álbum %1$s</string>
     <string name="albums_loading">Cargando álbumes…</string>
     <string name="albums_empty">No hay álbumes disponibles en este momento.</string>
-    <string name="albums_no_results">No se encontraron álbumes para \"%1$s\".</string>
     <string name="albums_error">Ocurrió un error al cargar los álbumes. Por favor, comunícate con el administrador.</string>
     <string name="album_search_placeholder">Buscar por nombre, género o artista…</string>
     <string name="album_search_clear">Limpiar búsqueda</string>
     <string name="album_search_empty">No se encontraron álbumes para \"%1$s\".</string>
     <string name="retry">Reintentar</string>
-    <string name="search_hint">Buscar por nombre, género o artista…</string>
 
     <!-- Paginación -->
     <string name="pagination_label">Pág. %1$d de %2$d</string>
@@ -28,8 +26,6 @@
     <string name="album_detail_loading">Cargando detalle del álbum…</string>
     <string name="album_detail_error">Ocurrió un error al cargar el álbum. Por favor, comunícate con el administrador.</string>
     <string name="back_to_catalog">Volver al catálogo</string>
-    <string name="favorite_album">Guardar en favoritos</string>
-    <string name="share_album">Compartir álbum</string>
     <string name="audiophile_badge">180g Audiophile Vinyl</string>
     <string name="read_more">Leer más</string>
     <string name="read_less">Leer menos</string>
@@ -41,10 +37,6 @@
 
     <!-- Listado 1: Pistas / Canciones -->
     <string name="tracks_section_title">Pistas del Álbum</string>
-    <plurals name="tracks_count_format">
-        <item quantity="one">%1$d canción</item>
-        <item quantity="other">%1$d canciones</item>
-    </plurals>
     <string name="tracks_sample_button">Muestra 30s</string>
     <string name="tracks_empty">Este álbum aún no tiene pistas registradas en el catálogo.</string>
 
@@ -63,4 +55,26 @@
     <string name="nav_albums">Álbumes</string>
     <string name="nav_artists">Artistas</string>
     <string name="nav_collectors">Coleccionistas</string>
+
+    <!-- HU04: Detalle de Artista -->
+    <string name="artist_detail_title">Detalle de Artista</string>
+    <string name="artist_back">Volver atrás</string>
+    <string name="artist_detail_loading">Cargando perfil del artista…</string>
+    <string name="artist_detail_error">Ocurrió un error al cargar el artista. Por favor, comunícate con el administrador.</string>
+    <string name="artist_verified">Artista Verificado</string>
+    <string name="artist_band_label">Banda: %1$s</string>
+    <string name="artist_add_favorite">Agregar a favoritos</string>
+    <string name="artist_in_favorites">En favoritos</string>
+    <string name="artist_share">Compartir perfil</string>
+    <string name="artist_albums_section">Álbumes asociados (%1$d)</string>
+    <string name="artist_albums_empty">Este artista no tiene álbumes asociados registrados.</string>
+    <string name="artist_awards_section">Premios &amp; Reconocimientos</string>
+    <string name="artist_awards_empty">Este artista no registra premios en el catálogo.</string>
+    <string name="artist_collectors_section">Coleccionistas que lo siguen (%1$d)</string>
+    <string name="artist_collectors_empty">Aún no hay coleccionistas siguiendo a este artista.</string>
+    <string name="artist_members_section">Integrantes de la agrupación (%1$d)</string>
+    <string name="artist_birth_date">Nacimiento: %1$s</string>
+    <string name="artist_creation_date">Creación: %1$s</string>
+    <string name="artist_solo_label">Solista</string>
+    <string name="artist_band_tag">Banda</string>
 </resources>

@@ -36,6 +36,7 @@ class AlbumDetailScreenTest {
         uiState: AlbumDetailUiState,
         onBackPage: () -> Unit = {},
         onRetry: () -> Unit = {},
+        onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
     ) {
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
@@ -43,6 +44,7 @@ class AlbumDetailScreenTest {
                     uiState = uiState,
                     onBack = onBackPage,
                     onRetry = onRetry,
+                    onPerformerClick = onPerformerClick,
                 )
             }
         }
@@ -254,5 +256,23 @@ class AlbumDetailScreenTest {
         composeTestRule.onNodeWithText("Leer menos").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("Leer menos").performClick()
         composeTestRule.onNodeWithText("Leer más").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun interprete_alHacerClic_disparaNavegacionADetalleArtista() {
+        var clickedId = -1
+        val performer1 = testPerformer(id = 1, name = "Carlos Vives")
+        val performer2 = testPerformer(id = 42, name = "Rubén Blades")
+        val album = testAlbum(id = 1, performers = listOf(performer1, performer2))
+
+        setContent(
+            uiState = AlbumDetailUiState.Success(album),
+            onPerformerClick = { id, _ -> clickedId = id }
+        )
+
+        composeTestRule.onNodeWithText("Intérpretes").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Rubén Blades").performScrollTo().performClick()
+
+        assertEquals(42, clickedId)
     }
 }
