@@ -51,6 +51,34 @@
     <string name="collector_verified">Coleccionista Verificado</string>
     <string name="collector_default_name">Coleccionista</string>
 
+    <!-- HU05: Listado de coleccionistas -->
+    <plurals name="collectors_header">
+        <item quantity="one">%d coleccionista registrado</item>
+        <item quantity="other">%d coleccionistas registrados</item>
+    </plurals>
+    <string name="collectors_loading">Cargando coleccionistas…</string>
+    <string name="collectors_empty">No hay coleccionistas registrados.</string>
+    <string name="collectors_error">Ocurrió un error al cargar los coleccionistas. Por favor, comunícate con el administrador.</string>
+    <string name="collector_search_placeholder">Buscar por nombre…</string>
+    <string name="collector_search_clear">Limpiar búsqueda de coleccionistas</string>
+    <string name="collector_search_empty">No se encontraron coleccionistas para \"%1$s\".</string>
+    <plurals name="collector_album_count">
+        <item quantity="one">%d álbum</item>
+        <item quantity="other">%d álbumes</item>
+    </plurals>
+    <string name="collector_open_detail">Ver detalle de %1$s</string>
+
+    <!-- Detalle de coleccionista -->
+    <string name="collector_detail_title">Detalle de Coleccionista</string>
+    <string name="collector_detail_loading">Cargando información del coleccionista…</string>
+    <string name="collector_detail_error">Ocurrió un error al cargar el coleccionista. Por favor, comunícate con el administrador.</string>
+    <string name="back_to_collectors">Volver a coleccionistas</string>
+    <string name="collector_stat_albums">Álbumes</string>
+    <string name="collector_stat_favorites">Favoritos</string>
+    <string name="collector_stat_comments">Comentarios</string>
+    <string name="collector_phone_description">Teléfono</string>
+    <string name="collector_email_description">Correo electrónico</string>
+
     <!-- Navegación principal -->
     <string name="nav_albums">Álbumes</string>
     <string name="nav_artists">Artistas</string>

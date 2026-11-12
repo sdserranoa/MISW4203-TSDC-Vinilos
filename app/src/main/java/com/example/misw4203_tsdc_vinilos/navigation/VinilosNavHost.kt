@@ -5,6 +5,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,6 +18,8 @@ import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
 import com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail.AlbumDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albums.AlbumListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScreen
+import com.example.misw4203_tsdc_vinilos.ui.screens.collectordetail.CollectorDetailScreen
+import com.example.misw4203_tsdc_vinilos.ui.screens.collectors.CollectorListScreen
 import kotlinx.serialization.Serializable
 
 /** Catálogo de álbumes (HU01). */
@@ -31,6 +34,14 @@ data class AlbumDetailRoute(val albumId: Int)
 @Serializable
 data class ArtistDetailRoute(val artistId: Int, val isBand: Boolean = false)
 
+/** Listado de coleccionistas (HU05). */
+@Serializable
+data object CollectorListRoute
+
+/** Detalle de un coleccionista. */
+@Serializable
+data class CollectorDetailRoute(val collectorId: Int)
+
 /** Grafo de navegación de la aplicación; cada pantalla se registra con una ruta tipada. */
 @Composable
 fun VinilosNavHost(
@@ -38,13 +49,7 @@ fun VinilosNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-
-    val currentTab = when {
-        currentDestination?.hasRoute<AlbumListRoute>() == true -> VinilosTab.ALBUMS
-        currentDestination?.hasRoute<ArtistDetailRoute>() == true -> VinilosTab.ARTISTS
-        else -> VinilosTab.ALBUMS
-    }
+    val currentTab = navBackStackEntry?.destination.toTab()
 
     Scaffold(
         modifier = modifier,
@@ -52,23 +57,13 @@ fun VinilosNavHost(
             VinilosBottomBar(
                 currentTab = currentTab,
                 onTabSelected = { tab ->
+                    val reselected = tab == currentTab
                     when (tab) {
-                        VinilosTab.ALBUMS -> {
-                            if (currentDestination?.hasRoute<AlbumListRoute>() != true) {
-                                navController.navigate(AlbumListRoute) {
-                                    popUpTo(AlbumListRoute) {
-                                        inclusive = true
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
+                        VinilosTab.ALBUMS -> navController.navigateToTab(AlbumListRoute, reselected)
                         VinilosTab.ARTISTS -> {
                             // Sección de artistas
                         }
-                        VinilosTab.COLLECTORS -> {
-                            // Sección de coleccionistas
-                        }
+                        VinilosTab.COLLECTORS -> navController.navigateToTab(CollectorListRoute, reselected)
                     }
                 }
             )
@@ -113,6 +108,43 @@ fun VinilosNavHost(
                     },
                 )
             }
+            composable<CollectorListRoute> {
+                CollectorListScreen(
+                    onCollectorClick = { collectorId ->
+                        navController.navigate(CollectorDetailRoute(collectorId))
+                    }
+                )
+            }
+            composable<CollectorDetailRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<CollectorDetailRoute>()
+                CollectorDetailScreen(
+                    collectorId = route.collectorId,
+                    onBack = { navController.popBackStack() },
+                )
+            }
         }
+    }
+}
+
+/** Pestaña de la barra inferior a la que pertenece el destino actual. */
+private fun NavDestination?.toTab(): VinilosTab = when {
+    this == null -> VinilosTab.ALBUMS
+    hasRoute<CollectorListRoute>() || hasRoute<CollectorDetailRoute>() -> VinilosTab.COLLECTORS
+    hasRoute<ArtistDetailRoute>() -> VinilosTab.ARTISTS
+    else -> VinilosTab.ALBUMS
+}
+
+/**
+ * Navega a la pantalla principal de una pestaña. Al cambiar de pestaña, las pantallas de la que se
+ * deja se guardan junto con sus ViewModels y se restauran al volver, de modo que no se repiten las
+ * consultas a la API ni se pierde la página o el filtro. Volver a tocar la pestaña activa regresa
+ * a su pantalla principal.
+ */
+private fun <T : Any> NavHostController.navigateToTab(root: T, reselected: Boolean) {
+    if (reselected && popBackStack(route = root, inclusive = false)) return
+    navigate(root) {
+        popUpTo(AlbumListRoute) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }

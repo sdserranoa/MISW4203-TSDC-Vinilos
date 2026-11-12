@@ -49,20 +49,25 @@ MISW4203-TSDC-Vinilos/
 │   │   │   │   ├── VinilosApplication.kt   # Configuración global (ImageLoader de Coil)
 │   │   │   │   ├── navigation/             # VinilosNavHost y rutas tipadas
 │   │   │   │   ├── ui/
-│   │   │   │   │   ├── components/         # AlbumCard, PaginationBar, StateMessage, VinilosTopBar
+│   │   │   │   │   ├── components/         # AlbumCard, CollectorCard, PaginationBar, StateMessage, VinilosTopBar
 │   │   │   │   │   ├── screens/
-│   │   │   │   │   │   └── albums/         # HU01: pantalla, ViewModel y estado de UI
+│   │   │   │   │   │   ├── albums/         # HU01: pantalla, ViewModel y estado de UI
+│   │   │   │   │   │   ├── albumdetail/    # HU02: detalle de álbum
+│   │   │   │   │   │   ├── collectors/     # HU05: listado de coleccionistas
+│   │   │   │   │   │   └── collectordetail/ # Detalle de coleccionista
 │   │   │   │   │   └── theme/
 │   │   │   │   ├── data/
-│   │   │   │   │   ├── network/            # Retrofit, OkHttp y endpoints de BackVynils
-│   │   │   │   │   └── repository/
+│   │   │   │   │   ├── network/            # Retrofit, OkHttp, endpoints de BackVynils y Service Adapters
+│   │   │   │   │   └── repository/         # Repositorios: fuente única de datos para los ViewModels
 │   │   │   │   └── model/
 │   │   │   ├── res/
 │   │   │   └── AndroidManifest.xml
 │   │   ├── test/                   # Pruebas Unitarias y Compose UI (JVM / Robolectric)
 │   │   │   └── java/com/example/misw4203_tsdc_vinilos/
-│   │   │       ├── data/network/           # Contrato JSON de la API
-│   │   │       ├── ui/screens/albums/      # ViewModel (JUnit) y pantalla (Compose Test)
+│   │   │       ├── data/network/           # Contrato JSON de la API y Service Adapters
+│   │   │       ├── data/repository/        # Repositorios con adaptadores falsos
+│   │   │       ├── flow/                   # Flujos de navegación de punta a punta en la JVM
+│   │   │       ├── ui/screens/             # ViewModels (JUnit) y pantallas (Compose Test)
 │   │   │       └── testutil/               # Fakes, fixtures y MainDispatcherRule
 │   │   └── androidTest/            # Pruebas instrumentadas (opcional en dispositivo)
 │   └── build.gradle.kts
@@ -84,7 +89,7 @@ MISW4203-TSDC-Vinilos/
 - **`ui/components/`**: Componentes visuales reutilizables (tarjetas, botones, barras superiores, etc.).
 - **`ui/screens/`**: Pantallas principales de la aplicación (álbumes, artistas, músicos, detalles, etc.).
 - **`ui/theme/`**: Configuración de estilos visuales, colores, tipografía y temas de Material 3 (`Theme.kt`, `Color.kt`, `Type.kt`).
-- **`data/`**: Capa de datos, clientes de red y repositorios encargados de consumir la API REST.
+- **`data/`**: Capa de datos. `network/` contiene el cliente Retrofit y los **Service Adapters** (p. ej. `CollectorServiceAdapter`), únicos puntos que conocen los recursos de la API REST; `repository/` contiene los **repositorios**, que dependen de los adaptadores y entregan los datos a los ViewModels (**MVVM**).
 - **`model/`**: Clases de datos que representan las entidades del dominio (Álbum, Artista, Músico, etc.).
 - **`res/`**: Recursos estáticos de Android (iconos, imágenes, cadenas de texto y temas XML).
 - **`src/test/`**: Contiene tanto las pruebas unitarias como las pruebas de interfaz de Jetpack Compose (p. ej. `AlbumListViewModelTest.kt` y `AlbumListScreenTest.kt`), las cuales se ejecutan sobre la JVM utilizando **Robolectric** en cuestión de segundos sin requerir emulador.

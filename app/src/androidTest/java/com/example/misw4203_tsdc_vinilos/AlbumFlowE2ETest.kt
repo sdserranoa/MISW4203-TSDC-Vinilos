@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
-import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.CommentCollector
@@ -100,7 +99,7 @@ class AlbumFlowE2ETest {
             ),
         )
 
-        private val fakeService = object : VinilosApiService {
+        private val fakeService = object : BaseFakeVinilosApiService() {
             override suspend fun getAlbums(): List<Album> = testAlbums
             override suspend fun getAlbum(albumId: Int): Album =
                 testAlbums.firstOrNull { it.id == albumId }
