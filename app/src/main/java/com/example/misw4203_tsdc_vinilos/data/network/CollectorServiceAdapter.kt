@@ -1,6 +1,7 @@
 package com.example.misw4203_tsdc_vinilos.data.network
 
 import com.example.misw4203_tsdc_vinilos.model.Collector
+import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,6 +20,9 @@ interface CollectorServiceAdapter {
 
     /** Coleccionista identificado por [collectorId] (`GET /collectors/{id}`). */
     suspend fun getCollector(collectorId: Int): Collector
+
+    /** Álbumes de la colección de [collectorId], con el álbum completo (`GET /collectors/{id}/albums`). */
+    suspend fun getCollectorAlbums(collectorId: Int): List<CollectorAlbum>
 }
 
 /**
@@ -36,4 +40,7 @@ class RetrofitCollectorServiceAdapter(
 
     override suspend fun getCollector(collectorId: Int): Collector =
         withContext(ioDispatcher) { api.getCollector(collectorId) }
+
+    override suspend fun getCollectorAlbums(collectorId: Int): List<CollectorAlbum> =
+        withContext(ioDispatcher) { api.getCollectorAlbums(collectorId) }
 }

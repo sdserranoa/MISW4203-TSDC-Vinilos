@@ -79,6 +79,16 @@
     <string name="collector_phone_description">Teléfono</string>
     <string name="collector_email_description">Correo electrónico</string>
 
+    <!-- HU06: Listados del detalle de coleccionista -->
+    <string name="collector_tab_albums">Álbumes (%1$d)</string>
+    <string name="collector_tab_artists">Artistas (%1$d)</string>
+    <string name="collector_tab_comments">Comentarios (%1$d)</string>
+    <string name="collector_albums_empty">No hay álbumes registrados para este coleccionista.</string>
+    <string name="collector_artists_empty">No hay artistas favoritos registrados para este coleccionista.</string>
+    <string name="collector_comments_empty">No hay comentarios registrados para este coleccionista.</string>
+    <string name="collector_rating_description">Calificación: %1$d de 5</string>
+    <string name="performer_open_detail">Ver detalle de %1$s</string>
+
     <!-- Navegación principal -->
     <string name="nav_albums">Álbumes</string>
     <string name="nav_artists">Artistas</string>

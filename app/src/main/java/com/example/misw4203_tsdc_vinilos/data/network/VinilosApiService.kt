@@ -2,6 +2,7 @@ package com.example.misw4203_tsdc_vinilos.data.network
 
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
+import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import com.example.misw4203_tsdc_vinilos.model.Prize
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -35,4 +36,7 @@ interface VinilosApiService {
 
     @GET("collectors/{id}")
     suspend fun getCollector(@Path("id") collectorId: Int): Collector
+
+    @GET("collectors/{id}/albums")
+    suspend fun getCollectorAlbums(@Path("id") collectorId: Int): List<CollectorAlbum>
 }

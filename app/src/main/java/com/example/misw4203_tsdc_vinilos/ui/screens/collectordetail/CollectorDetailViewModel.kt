@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** Carga la información del coleccionista identificado por [collectorId]. */
+/**
+ * Carga el detalle del coleccionista identificado por [collectorId] (HU06): sus datos, sus álbumes,
+ * sus artistas favoritos y sus comentarios. La carga se cancela si el usuario sale de la pantalla.
+ */
 class CollectorDetailViewModel(
     private val collectorId: Int,
     private val repository: CollectorRepository,
@@ -33,7 +36,7 @@ class CollectorDetailViewModel(
         _uiState.value = CollectorDetailUiState.Loading
         loadJob = viewModelScope.launch {
             _uiState.value = try {
-                CollectorDetailUiState.Success(repository.getCollector(collectorId))
+                CollectorDetailUiState.Success(repository.getCollectorDetail(collectorId))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

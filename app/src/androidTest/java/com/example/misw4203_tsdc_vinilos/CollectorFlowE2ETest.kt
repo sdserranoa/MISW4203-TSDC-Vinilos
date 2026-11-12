@@ -12,9 +12,7 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
-import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
-import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Rule
@@ -35,38 +33,11 @@ import java.io.IOException
 @RunWith(AndroidJUnit4::class)
 class CollectorFlowE2ETest {
 
-    /** Servicio falso cuyos datos se ajustan en cada prueba antes de abrir la pestaña. */
-    private class CollectorFakeService : BaseFakeVinilosApiService() {
-        var collectors: List<Collector> = emptyList()
-        var collectorsError: Exception? = null
-
-        override suspend fun getAlbums(): List<Album> = emptyList()
-        override suspend fun getAlbum(albumId: Int): Album =
-            throw NoSuchElementException("Album $albumId not found")
-
-        override suspend fun getCollectors(): List<Collector> {
-            collectorsError?.let { throw it }
-            return collectors
-        }
-
-        override suspend fun getCollector(collectorId: Int): Collector {
-            collectorsError?.let { throw it }
-            return collectors.firstOrNull { it.id == collectorId }
-                ?: throw NoSuchElementException("Collector $collectorId not found")
-        }
-    }
-
     companion object {
-        private val fakeService = CollectorFakeService()
+        private val fakeService = CollectorsFakeService()
 
         private fun collector(id: Int, name: String, email: String, telephone: String, albums: Int) =
-            Collector(
-                id = id,
-                name = name,
-                telephone = telephone,
-                email = email,
-                collectorAlbums = (1..albums).map { CollectorAlbum(id = id * 10 + it, price = 30.0, status = "Active") },
-            )
+            CollectorsTestData.collector(id, name, email, telephone, albums)
 
         private val backendCollectors = listOf(
             collector(100, "Manolo Bellon", "manollo@caracol.com.co", "3502457896", albums = 1),
@@ -97,6 +68,7 @@ class CollectorFlowE2ETest {
     }
 
     private fun openCollectorsTab(collectors: List<Collector>, error: Exception? = null) {
+        fakeService.reset()
         fakeService.collectors = collectors
         fakeService.collectorsError = error
         composeTestRule.onNodeWithText("Coleccionistas").performClick()

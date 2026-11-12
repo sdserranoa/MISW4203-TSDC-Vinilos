@@ -5,6 +5,7 @@ import com.example.misw4203_tsdc_vinilos.data.network.MusicianDetailResponse
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApiService
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
+import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import com.example.misw4203_tsdc_vinilos.model.Prize
 
 /**
@@ -35,4 +36,6 @@ internal open class BaseFakeVinilosApiService : VinilosApiService {
 
     override suspend fun getCollector(collectorId: Int): Collector =
         throw NoSuchElementException("Collector $collectorId not found")
+
+    override suspend fun getCollectorAlbums(collectorId: Int): List<CollectorAlbum> = emptyList()
 }
