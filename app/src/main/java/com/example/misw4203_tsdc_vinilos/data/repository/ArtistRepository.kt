@@ -30,6 +30,46 @@ class ArtistRepository @JvmOverloads constructor(
 ) {
 
     /**
+     * Obtiene el listado consolidado de todos los artistas (músicos y bandas)
+     * para el catálogo de la HU03. Ejecuta ambas peticiones en paralelo mediante [async].
+     */
+    suspend fun getArtists(): List<Performer> = withContext(ioDispatcher) {
+        coroutineScope {
+            val musiciansDeferred = async { serviceAdapter.getMusicians() }
+            val bandsDeferred = async { serviceAdapter.getAllBands() }
+
+            val musicians = musiciansDeferred.await()
+            val bands = bandsDeferred.await()
+
+            val musicianPerformers = musicians.map { m ->
+                Performer(
+                    id = m.id,
+                    name = m.name,
+                    image = m.image,
+                    description = m.description,
+                    birthDate = m.birthDate,
+                    creationDate = "",
+                    albums = m.albums,
+                )
+            }
+
+            val bandPerformers = bands.map { b ->
+                Performer(
+                    id = b.id,
+                    name = b.name,
+                    image = b.image,
+                    description = b.description,
+                    birthDate = "",
+                    creationDate = b.creationDate,
+                    albums = b.albums,
+                )
+            }
+
+            musicianPerformers + bandPerformers
+        }
+    }
+
+    /**
      * Obtiene el detalle consolidado del artista [id]. Si [isBandHint] es nulo,
      * intenta resolverlo primero como músico y luego como banda.
      */

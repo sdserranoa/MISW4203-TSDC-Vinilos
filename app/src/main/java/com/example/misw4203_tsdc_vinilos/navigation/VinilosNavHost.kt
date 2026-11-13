@@ -19,6 +19,7 @@ import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
 import com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail.AlbumDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albums.AlbumListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScreen
+import com.example.misw4203_tsdc_vinilos.ui.screens.artists.ArtistListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.collectordetail.CollectorDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.collectors.CollectorListScreen
 import kotlinx.serialization.Serializable
@@ -30,6 +31,10 @@ data object AlbumListRoute
 /** Detalle de un álbum (HU02). */
 @Serializable
 data class AlbumDetailRoute(val albumId: Int)
+
+/** Listado de artistas (HU03). */
+@Serializable
+data object ArtistListRoute
 
 /** Detalle de un artista / agrupación (HU04). */
 @Serializable
@@ -61,9 +66,7 @@ fun VinilosNavHost(
                     val reselected = tab == currentTab
                     when (tab) {
                         VinilosTab.ALBUMS -> navController.navigateToTab(AlbumListRoute, reselected)
-                        VinilosTab.ARTISTS -> {
-                            // Sección de artistas
-                        }
+                        VinilosTab.ARTISTS -> navController.navigateToTab(ArtistListRoute, reselected)
                         VinilosTab.COLLECTORS -> navController.navigateToTab(CollectorListRoute, reselected)
                     }
                 }
@@ -94,6 +97,13 @@ fun VinilosNavHost(
                     onPerformerClick = { performerId, isBand ->
                         navController.navigate(ArtistDetailRoute(artistId = performerId, isBand = isBand))
                     },
+                )
+            }
+            composable<ArtistListRoute> {
+                ArtistListScreen(
+                    onArtistClick = { artistId, isBand ->
+                        navController.navigate(ArtistDetailRoute(artistId = artistId, isBand = isBand))
+                    }
                 )
             }
             composable<ArtistDetailRoute> { backStackEntry ->
@@ -144,9 +154,10 @@ fun VinilosNavHost(
  */
 private fun NavHostController.currentTab(): VinilosTab {
     val collectorsInBackStack = runCatching { getBackStackEntry<CollectorListRoute>() }.isSuccess
+    val artistsInBackStack = runCatching { getBackStackEntry<ArtistListRoute>() }.isSuccess
     return when {
         collectorsInBackStack -> VinilosTab.COLLECTORS
-        currentDestination?.hasRoute<ArtistDetailRoute>() == true -> VinilosTab.ARTISTS
+        artistsInBackStack || currentDestination?.hasRoute<ArtistDetailRoute>() == true -> VinilosTab.ARTISTS
         else -> VinilosTab.ALBUMS
     }
 }
