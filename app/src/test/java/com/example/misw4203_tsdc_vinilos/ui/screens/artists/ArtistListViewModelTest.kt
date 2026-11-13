@@ -29,8 +29,11 @@ class ArtistListViewModelTest {
 
     private fun viewModelWith(service: FakeVinilosApiService) = ArtistListViewModel(
         repository = ArtistRepository(
-            serviceAdapter = RetrofitArtistServiceAdapter(api = service),
-            ioDispatcher = testDispatcher,
+            serviceAdapter = RetrofitArtistServiceAdapter(
+                api = service,
+                ioDispatcher = testDispatcher,
+            ),
+            defaultDispatcher = testDispatcher,
         ),
         defaultDispatcher = testDispatcher,
     )

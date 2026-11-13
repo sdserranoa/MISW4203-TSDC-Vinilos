@@ -54,7 +54,7 @@ class ArtistRepositoryTest {
         val band = BandDetailResponse(id = 2, name = "Queen", creationDate = "1970-01-01")
         val repository = ArtistRepository(
             serviceAdapter = FakeArtistServiceAdapter(musicians = listOf(musician), bands = listOf(band)),
-            ioDispatcher = testDispatcher,
+            defaultDispatcher = testDispatcher,
         )
 
         val result = repository.getArtists()
@@ -73,7 +73,7 @@ class ArtistRepositoryTest {
     fun getArtists_anteErrorDeRed_lanzaExcepcion() = runTest(testDispatcher) {
         val repository = ArtistRepository(
             serviceAdapter = FakeArtistServiceAdapter(networkError = IOException("Error de conexión")),
-            ioDispatcher = testDispatcher,
+            defaultDispatcher = testDispatcher,
         )
 
         repository.getArtists()
