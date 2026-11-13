@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.ui.theme.Amber
@@ -148,11 +147,13 @@ private fun ArtistAvatar(
     modifier: Modifier = Modifier,
 ) {
     if (imageUrl.isNotBlank()) {
-        AsyncImage(
+        GlideImage(
             model = imageUrl,
             contentDescription = stringResource(R.string.performer_avatar_description, name),
             contentScale = ContentScale.Crop,
             modifier = modifier.clip(CircleShape),
+            overrideWidthPx = 180,
+            overrideHeightPx = 180,
         )
     } else {
         Surface(

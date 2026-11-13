@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
@@ -121,7 +123,9 @@ fun GlideImage(
     }
 
     Box(
-        modifier = modifier,
+        modifier = modifier.semantics {
+            contentDescription?.let { this.contentDescription = it }
+        },
         contentAlignment = Alignment.Center,
     ) {
         val currentBitmap = bitmapState
@@ -129,7 +133,7 @@ fun GlideImage(
             currentBitmap != null -> {
                 Image(
                     bitmap = currentBitmap.asImageBitmap(),
-                    contentDescription = contentDescription,
+                    contentDescription = null,
                     contentScale = contentScale,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -138,7 +142,7 @@ fun GlideImage(
                 if (placeholderRes != null) {
                     Image(
                         painter = painterResource(placeholderRes),
-                        contentDescription = contentDescription,
+                        contentDescription = null,
                         contentScale = contentScale,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -154,7 +158,7 @@ fun GlideImage(
                 if (errorRes != null) {
                     Image(
                         painter = painterResource(errorRes),
-                        contentDescription = contentDescription,
+                        contentDescription = null,
                         contentScale = contentScale,
                         modifier = Modifier.fillMaxSize(),
                     )

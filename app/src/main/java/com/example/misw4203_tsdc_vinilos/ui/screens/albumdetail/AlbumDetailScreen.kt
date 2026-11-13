@@ -48,7 +48,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,12 +63,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.model.Track
+import com.example.misw4203_tsdc_vinilos.ui.components.GlideImage
 import com.example.misw4203_tsdc_vinilos.ui.components.LoadingMessage
 import com.example.misw4203_tsdc_vinilos.ui.components.StateMessage
 import com.example.misw4203_tsdc_vinilos.ui.theme.Amber
@@ -670,13 +669,15 @@ fun PerformerListItem(
                 )
 
                 if (performer.normalizedImage.isNotBlank()) {
-                    AsyncImage(
+                    GlideImage(
                         model = performer.normalizedImage,
                         contentDescription = stringResource(R.string.performer_avatar_description, performer.name),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape),
+                        overrideWidthPx = 180,
+                        overrideHeightPx = 180,
                     )
                 }
             }
@@ -903,8 +904,6 @@ fun VinylAlbumHero(
     album: Album,
     modifier: Modifier = Modifier,
 ) {
-    val coverPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainerHighest)
-
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -935,13 +934,13 @@ fun VinylAlbumHero(
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
+                    GlideImage(
                         model = album.cover,
                         contentDescription = stringResource(R.string.album_cover_description, album.name),
                         contentScale = ContentScale.Crop,
-                        placeholder = coverPlaceholder,
-                        error = coverPlaceholder,
                         modifier = Modifier.fillMaxSize(),
+                        overrideWidthPx = 700,
+                        overrideHeightPx = 700,
                     )
 
                     // Distintivo de edición para audiófilos

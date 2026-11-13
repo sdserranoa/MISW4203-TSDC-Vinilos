@@ -44,9 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
+import com.example.misw4203_tsdc_vinilos.ui.components.GlideImage
 import com.example.misw4203_tsdc_vinilos.ui.components.LoadingMessage
 import com.example.misw4203_tsdc_vinilos.ui.components.StateMessage
 import com.example.misw4203_tsdc_vinilos.ui.theme.Amber
@@ -364,13 +364,15 @@ private fun AlbumHeaderSummary(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (album.cover.isNotBlank()) {
-                AsyncImage(
+                GlideImage(
                     model = album.cover,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(8.dp)),
+                    overrideWidthPx = 160,
+                    overrideHeightPx = 160,
                 )
             } else {
                 Surface(
