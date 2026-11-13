@@ -60,7 +60,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.CollectorDetail
@@ -68,6 +67,7 @@ import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.model.initialsOf
 import com.example.misw4203_tsdc_vinilos.ui.components.AlbumCard
+import com.example.misw4203_tsdc_vinilos.ui.components.GlideImage
 import com.example.misw4203_tsdc_vinilos.ui.components.InitialsAvatar
 import com.example.misw4203_tsdc_vinilos.ui.components.LoadingMessage
 import com.example.misw4203_tsdc_vinilos.ui.components.StateMessage
@@ -490,14 +490,16 @@ private fun FavoritePerformerRow(performer: Performer, showChevron: Boolean) {
             val initials = remember(performer.name) { initialsOf(performer.name) }
             InitialsAvatar(initials = initials, size = 56.dp)
             if (performer.image.isNotBlank()) {
-                // Tamaño fijo: Coil decodifica la imagen a 56 dp y no a la resolución original.
-                AsyncImage(
+                // Tamaño fijo: Glide decodifica la imagen al tamaño indicado y no a la resolución original.
+                GlideImage(
                     model = performer.image,
                     contentDescription = stringResource(R.string.performer_avatar_description, performer.name),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape),
+                    overrideWidthPx = 168,
+                    overrideHeightPx = 168,
                 )
             }
         }

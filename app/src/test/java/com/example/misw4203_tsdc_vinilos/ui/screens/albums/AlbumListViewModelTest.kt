@@ -1,9 +1,12 @@
 package com.example.misw4203_tsdc_vinilos.ui.screens.albums
 
+import com.example.misw4203_tsdc_vinilos.data.network.RetrofitAlbumServiceAdapter
 import com.example.misw4203_tsdc_vinilos.data.repository.AlbumRepository
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
 import com.example.misw4203_tsdc_vinilos.testutil.MainDispatcherRule
 import com.example.misw4203_tsdc_vinilos.testutil.testAlbums
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -15,15 +18,25 @@ import org.robolectric.annotation.Config
 import java.io.IOException
 
 /** Pruebas unitarias de la carga y la paginación en cliente del catálogo de álbumes (HU01). */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [23, 26, 34, 35, 36])
 class AlbumListViewModelTest {
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
-    private fun viewModelWith(service: FakeVinilosApiService) =
-        AlbumListViewModel(AlbumRepository(service))
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
+    private fun viewModelWith(service: FakeVinilosApiService) = AlbumListViewModel(
+        repository = AlbumRepository(
+            serviceAdapter = RetrofitAlbumServiceAdapter(
+                api = service,
+                ioDispatcher = testDispatcher,
+            ),
+        ),
+        defaultDispatcher = testDispatcher,
+    )
 
     private fun AlbumListViewModel.successState() = uiState.value as AlbumListUiState.Success
 

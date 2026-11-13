@@ -4,7 +4,10 @@ import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Collector
 import com.example.misw4203_tsdc_vinilos.model.CollectorAlbum
 import com.example.misw4203_tsdc_vinilos.model.Prize
+import com.example.misw4203_tsdc_vinilos.model.Track
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 
 /** Endpoints de la API BackVynils consumidos por la aplicación. */
@@ -15,6 +18,12 @@ interface VinilosApiService {
 
     @GET("albums/{id}")
     suspend fun getAlbum(@Path("id") albumId: Int): Album
+
+    @POST("albums/{id}/tracks")
+    suspend fun postTrack(
+        @Path("id") albumId: Int,
+        @Body track: TrackRequest,
+    ): Track
 
     @GET("musicians")
     suspend fun getMusicians(): List<MusicianDetailResponse>

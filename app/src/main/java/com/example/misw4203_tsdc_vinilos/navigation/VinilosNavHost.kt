@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosBottomBar
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
+import com.example.misw4203_tsdc_vinilos.ui.screens.addtrack.AddTrackScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albumdetail.AlbumDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.albums.AlbumListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScreen
@@ -31,6 +33,10 @@ data object AlbumListRoute
 /** Detalle de un álbum (HU02). */
 @Serializable
 data class AlbumDetailRoute(val albumId: Int)
+
+/** Asociar canción a un álbum (HU08). */
+@Serializable
+data class AddTrackRoute(val albumId: Int)
 
 /** Listado de artistas (HU03). */
 @Serializable
@@ -91,12 +97,36 @@ fun VinilosNavHost(
             }
             composable<AlbumDetailRoute> { backStackEntry ->
                 val route = backStackEntry.toRoute<AlbumDetailRoute>()
+                val trackAdded by backStackEntry.savedStateHandle
+                    .getStateFlow("track_added", false)
+                    .collectAsStateWithLifecycle()
                 AlbumDetailScreen(
                     albumId = route.albumId,
                     onBack = { navController.popBackStack() },
+                    refreshOnTrackAdded = trackAdded,
+                    onTrackAddedConsumed = {
+                        backStackEntry.savedStateHandle["track_added"] = false
+                    },
+                    onAddTrackClick = { albumId ->
+                        navController.navigate(AddTrackRoute(albumId))
+                    },
                     onPerformerClick = { performerId, isBand ->
                         navController.navigate(ArtistDetailRoute(artistId = performerId, isBand = isBand))
                     },
+                )
+            }
+            composable<AddTrackRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<AddTrackRoute>()
+                AddTrackScreen(
+                    albumId = route.albumId,
+                    onBack = { navController.popBackStack() },
+                    onSuccess = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("track_added", true)
+                        navController.popBackStack()
+                    },
+                    onErrorBack = { navController.popBackStack() },
                 )
             }
             composable<ArtistListRoute> {

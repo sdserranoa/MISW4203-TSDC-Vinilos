@@ -161,7 +161,7 @@ private fun AlbumGrid(
             AlbumCountHeader(totalAlbums = state.totalAlbums)
         }
         if (state.albums.isEmpty()) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "message") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -176,13 +176,17 @@ private fun AlbumGrid(
                 }
             }
         } else {
-            items(state.albums, key = { it.id }) { album ->
+            items(
+                items = state.albums,
+                key = { it.id },
+                contentType = { "album" },
+            ) { album ->
                 AlbumCard(
                     album = album,
                     onClick = { onAlbumClick(album.id) },
                 )
             }
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "pagination") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

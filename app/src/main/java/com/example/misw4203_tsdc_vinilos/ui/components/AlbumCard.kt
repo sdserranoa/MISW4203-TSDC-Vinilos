@@ -17,13 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
 
@@ -34,23 +32,21 @@ fun AlbumCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {
-    val coverPlaceholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainerHighest)
-
     Card(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        AsyncImage(
+        GlideImage(
             model = album.cover,
             contentDescription = stringResource(R.string.album_cover_description, album.name),
             contentScale = ContentScale.Crop,
-            placeholder = coverPlaceholder,
-            error = coverPlaceholder,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f),
+            overrideWidthPx = 600,
+            overrideHeightPx = 600,
         )
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
