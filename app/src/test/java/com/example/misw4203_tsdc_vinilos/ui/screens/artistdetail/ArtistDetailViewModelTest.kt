@@ -58,7 +58,7 @@ class ArtistDetailViewModelTest {
                 description = "Músico argentino"
             )
         )
-        val repository = ArtistRepository(serviceAdapter = adapter, ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        val repository = ArtistRepository(serviceAdapter = adapter, defaultDispatcher = UnconfinedTestDispatcher(testScheduler))
         val viewModel = ArtistDetailViewModel(artistId = 1, isBand = false, repository = repository)
 
         val state = viewModel.uiState.value
@@ -78,7 +78,7 @@ class ArtistDetailViewModelTest {
                 description = "Banda argentina"
             )
         )
-        val repository = ArtistRepository(serviceAdapter = adapter, ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        val repository = ArtistRepository(serviceAdapter = adapter, defaultDispatcher = UnconfinedTestDispatcher(testScheduler))
         val viewModel = ArtistDetailViewModel(artistId = 50, isBand = true, repository = repository)
 
         val state = viewModel.uiState.value
@@ -91,7 +91,7 @@ class ArtistDetailViewModelTest {
     @Test
     fun alFallarCarga_estadoPasaAError() = runTest {
         val adapter = FakeArtistServiceAdapter(error = IOException("Red no disponible"))
-        val repository = ArtistRepository(serviceAdapter = adapter, ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        val repository = ArtistRepository(serviceAdapter = adapter, defaultDispatcher = UnconfinedTestDispatcher(testScheduler))
         val viewModel = ArtistDetailViewModel(artistId = 1, repository = repository)
 
         val state = viewModel.uiState.value
@@ -103,7 +103,7 @@ class ArtistDetailViewModelTest {
         val adapter = FakeArtistServiceAdapter(
             musicianToReturn = MusicianDetailResponse(id = 1, name = "Gustavo Cerati")
         )
-        val repository = ArtistRepository(serviceAdapter = adapter, ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        val repository = ArtistRepository(serviceAdapter = adapter, defaultDispatcher = UnconfinedTestDispatcher(testScheduler))
         val viewModel = ArtistDetailViewModel(artistId = 1, repository = repository)
 
         assertFalse((viewModel.uiState.value as ArtistDetailUiState.Success).isFavorite)
