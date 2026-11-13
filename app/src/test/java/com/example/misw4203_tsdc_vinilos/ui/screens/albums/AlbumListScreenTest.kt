@@ -11,12 +11,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import com.example.misw4203_tsdc_vinilos.data.network.RetrofitAlbumServiceAdapter
 import com.example.misw4203_tsdc_vinilos.data.repository.AlbumRepository
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
+import com.example.misw4203_tsdc_vinilos.testutil.MainDispatcherRule
 import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
 import com.example.misw4203_tsdc_vinilos.testutil.testAlbums
 import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -28,12 +32,29 @@ import org.robolectric.annotation.Config
  * Pruebas de interfaz en Jetpack Compose del catálogo de álbumes (HU01), ejecutadas en la JVM
  * con Robolectric sobre una pantalla de teléfono de 411 x 891 dp.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [23, 26, 34, 35, 36], qualifiers = "w411dp-h891dp-xxhdpi")
 class AlbumListScreenTest {
 
+    private val testDispatcher = UnconfinedTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    private fun viewModelWith(albums: List<com.example.misw4203_tsdc_vinilos.model.Album>) =
+        AlbumListViewModel(
+            repository = AlbumRepository(
+                serviceAdapter = RetrofitAlbumServiceAdapter(
+                    api = FakeVinilosApiService(albums = albums),
+                    ioDispatcher = testDispatcher,
+                ),
+            ),
+            defaultDispatcher = testDispatcher,
+        )
 
     private fun setContent(
         uiState: AlbumListUiState,
@@ -163,9 +184,7 @@ class AlbumListScreenTest {
 
     @Test
     fun pantallaConViewModel_alAvanzarDePagina_muestraLosSiguientesAlbumes() {
-        val viewModel = AlbumListViewModel(
-            AlbumRepository(serviceAdapter = FakeVinilosApiService(albums = testAlbums(12)))
-        )
+        val viewModel = viewModelWith(testAlbums(12))
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumListScreen(viewModel = viewModel)
@@ -189,7 +208,7 @@ class AlbumListScreenTest {
             testAlbum(2, "Artaud", "Rock", performers = listOf(Performer(2, "Pescado Rabioso"))),
             testAlbum(3, "Siembra", "Salsa", performers = listOf(Performer(3, "Willie Colón"))),
         )
-        val viewModel = AlbumListViewModel(AlbumRepository(serviceAdapter = FakeVinilosApiService(albums = albums)))
+        val viewModel = viewModelWith(albums)
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumListScreen(viewModel = viewModel)
@@ -210,7 +229,7 @@ class AlbumListScreenTest {
             testAlbum(1, "Buscando América", "Salsa", performers = listOf(Performer(1, "Rubén Blades"))),
             testAlbum(2, "Artaud", "Rock", performers = listOf(Performer(2, "Pescado Rabioso"))),
         )
-        val viewModel = AlbumListViewModel(AlbumRepository(serviceAdapter = FakeVinilosApiService(albums = albums)))
+        val viewModel = viewModelWith(albums)
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumListScreen(viewModel = viewModel)
@@ -230,7 +249,7 @@ class AlbumListScreenTest {
             testAlbum(1, "Buscando América", "Salsa"),
             testAlbum(2, "Artaud", "Rock"),
         )
-        val viewModel = AlbumListViewModel(AlbumRepository(serviceAdapter = FakeVinilosApiService(albums = albums)))
+        val viewModel = viewModelWith(albums)
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumListScreen(viewModel = viewModel)
@@ -252,7 +271,7 @@ class AlbumListScreenTest {
     @Test
     fun filtro_sinResultados_muestraMensajeSinCoincidencias() {
         val albums = listOf(testAlbum(1, "Buscando América", "Salsa"))
-        val viewModel = AlbumListViewModel(AlbumRepository(serviceAdapter = FakeVinilosApiService(albums = albums)))
+        val viewModel = viewModelWith(albums)
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
                 AlbumListScreen(viewModel = viewModel)
