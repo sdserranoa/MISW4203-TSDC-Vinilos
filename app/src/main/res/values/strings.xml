@@ -131,4 +131,20 @@
     <string name="artist_filter_bands">Bandas</string>
     <string name="artist_filter_solos">Solistas</string>
     <string name="artist_featured_album">Álbum destacado: %1$s</string>
+
+    <!-- HU08: Asociar tracks con un álbum -->
+    <string name="add_track_screen_title">Nuevo Álbum</string>
+    <string name="add_track_dialog_title">Agregar Canción</string>
+    <string name="add_track_close_description">Cerrar formulario</string>
+    <string name="add_track_name_label">Nombre de la canción *</string>
+    <string name="add_track_name_placeholder">Come Together</string>
+    <string name="add_track_name_helper">Ej. Track 01 - Lado A o Cara B</string>
+    <string name="add_track_duration_label">Duración *</string>
+    <string name="add_track_duration_placeholder">MM:SS (ej. 04:20)</string>
+    <string name="add_track_suggestions_label">Sugerencias frecuentes:</string>
+    <string name="add_track_submit_button">+ Asociar Canción</string>
+    <string name="add_track_cancel_button">Cancelar</string>
+    <string name="add_track_button_album_detail">+ Agregar canción</string>
+    <string name="add_track_loading">Cargando información del álbum…</string>
+    <string name="add_track_error">Ocurrió un error al asociar la canción al álbum. Por favor, comunícate con el administrador.</string>
 </resources>

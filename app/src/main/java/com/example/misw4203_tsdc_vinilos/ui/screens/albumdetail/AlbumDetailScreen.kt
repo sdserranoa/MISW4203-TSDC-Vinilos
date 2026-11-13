@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -80,6 +81,9 @@ fun AlbumDetailScreen(
     albumId: Int,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    refreshOnTrackAdded: Boolean = false,
+    onTrackAddedConsumed: () -> Unit = {},
+    onAddTrackClick: (Int) -> Unit = {},
     onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
     viewModel: AlbumDetailViewModel = viewModel(
         key = "album_detail_$albumId",
@@ -88,10 +92,18 @@ fun AlbumDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(refreshOnTrackAdded) {
+        if (refreshOnTrackAdded) {
+            viewModel.loadAlbum()
+            onTrackAddedConsumed()
+        }
+    }
+
     AlbumDetailContent(
         uiState = uiState,
         onBack = onBack,
         onRetry = viewModel::loadAlbum,
+        onAddTrackClick = onAddTrackClick,
         modifier = modifier,
         onPerformerClick = onPerformerClick,
     )
@@ -105,6 +117,7 @@ fun AlbumDetailContent(
     modifier: Modifier = Modifier,
     onFavoriteClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
+    onAddTrackClick: (Int) -> Unit = {},
     onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
 ) {
     Scaffold(
@@ -134,6 +147,7 @@ fun AlbumDetailContent(
             is AlbumDetailUiState.Success -> AlbumDetailBody(
                 album = uiState.album,
                 modifier = contentModifier,
+                onAddTrackClick = onAddTrackClick,
                 onPerformerClick = onPerformerClick,
             )
         }
@@ -197,6 +211,7 @@ enum class AlbumDetailTab(val titleRes: Int) {
 fun AlbumDetailBody(
     album: Album,
     modifier: Modifier = Modifier,
+    onAddTrackClick: (Int) -> Unit = {},
     onPerformerClick: (Int, Boolean) -> Unit = { _, _ -> },
 ) {
     val scrollState = rememberScrollState()
@@ -299,6 +314,7 @@ fun AlbumDetailBody(
             AlbumDetailTab.TRACKS -> AlbumTracklistSection(
                 album = album,
                 modifier = Modifier.fillMaxWidth(),
+                onAddTrackClick = { onAddTrackClick(album.id) },
             )
             AlbumDetailTab.PERFORMERS -> AlbumPerformersSection(
                 album = album,
@@ -369,6 +385,7 @@ fun AlbumTracklistSection(
     album: Album,
     modifier: Modifier = Modifier,
     onSamplePlay: () -> Unit = {},
+    onAddTrackClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -389,7 +406,7 @@ fun AlbumTracklistSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.tracks_section_title).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
@@ -422,33 +439,28 @@ fun AlbumTracklistSection(
                     )
                 }
 
-                if (album.tracks.isNotEmpty()) {
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        color = Amber.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, Amber.copy(alpha = 0.35f)),
-                        modifier = Modifier.clickable { onSamplePlay() },
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Amber.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, Amber.copy(alpha = 0.4f)),
+                    modifier = Modifier.clickable { onAddTrackClick() },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Canvas(modifier = Modifier.size(8.dp)) {
-                                val path = Path().apply {
-                                    moveTo(0f, 0f)
-                                    lineTo(size.width, size.height / 2f)
-                                    lineTo(0f, size.height)
-                                    close()
-                                }
-                                drawPath(path, color = Amber)
-                            }
-                            Text(
-                                text = stringResource(R.string.tracks_sample_button),
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                color = Amber,
-                            )
-                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_badge),
+                            contentDescription = null,
+                            tint = Amber,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.add_track_button_album_detail),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = Amber,
+                        )
                     }
                 }
             }

@@ -21,8 +21,8 @@ class AlbumDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun viewModelWith(albumId: Int,service: FakeVinilosApiService) =
-        AlbumDetailViewModel(albumId,AlbumRepository(service))
+    private fun viewModelWith(albumId: Int, service: FakeVinilosApiService) =
+        AlbumDetailViewModel(albumId, AlbumRepository(serviceAdapter = service))
 
     private fun AlbumDetailViewModel.successState() = uiState.value as AlbumDetailUiState.Success
 

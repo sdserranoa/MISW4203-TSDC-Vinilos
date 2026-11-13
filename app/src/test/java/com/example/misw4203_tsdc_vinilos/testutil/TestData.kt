@@ -127,8 +127,9 @@ class FakeVinilosApiService(
     var prizes: List<Prize> = emptyList(),
     var collectors: List<Collector> = emptyList(),
     var error: Throwable? = null,
+    var postTrackError: Throwable? = null,
     var collectorAlbums: Map<Int, List<CollectorAlbum>> = emptyMap(),
-) : VinilosApiService {
+) : VinilosApiService, com.example.misw4203_tsdc_vinilos.data.network.AlbumServiceAdapter {
 
     override suspend fun getCollectorAlbums(collectorId: Int): List<CollectorAlbum> {
         error?.let { throw it }
@@ -185,6 +186,17 @@ class FakeVinilosApiService(
     override suspend fun getPrizes(): List<Prize> {
         error?.let { throw it }
         return prizes
+    }
+
+    override suspend fun postTrack(albumId: Int, track: com.example.misw4203_tsdc_vinilos.data.network.TrackRequest): Track {
+        (postTrackError ?: error)?.let { throw it }
+        val newTrack = Track(id = (100..999).random(), name = track.name, duration = track.duration)
+        albums = albums.map { album ->
+            if (album.id == albumId) {
+                album.copy(tracks = album.tracks + newTrack)
+            } else album
+        }
+        return newTrack
     }
 
 }
