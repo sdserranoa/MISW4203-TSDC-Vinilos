@@ -149,6 +149,13 @@ class AlbumFlowIntegrationTest {
         }
     }
 
+    private fun waitForText(text: String) {
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeTestRule.onNodeWithText(text).assertIsDisplayed()
+    }
+
     /** Diligencia todos los campos de HU07 a través de la interfaz, incluidos el calendario y los selectores. */
     private fun fillValidAlbumForm(name: String = "Álbum 2024") {
         composeTestRule.onNodeWithContentDescription("Nombre del álbum").performTextInput(name)
@@ -344,8 +351,8 @@ class AlbumFlowIntegrationTest {
         composeTestRule.onNodeWithText("Guardar Álbum").performClick()
 
         // Confirmación de creación exitosa y catálogo actualizado con el nuevo álbum
-        composeTestRule.onNodeWithText("Álbum creado exitosamente").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Explora 4 álbumes clásicos").assertIsDisplayed()
+        waitForText("Álbum creado exitosamente")
+        waitForText("Explora 4 álbumes clásicos")
         composeTestRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Álbum 2024"))
         composeTestRule.onNodeWithText("Álbum 2024").assertIsDisplayed()
         val created = fakeService.albums.last()
@@ -417,9 +424,8 @@ class AlbumFlowIntegrationTest {
         fillValidAlbumForm()
         composeTestRule.onNodeWithText("Guardar Álbum").performClick()
 
-        composeTestRule.onNodeWithText("No se pudo crear el álbum. Inténtalo de nuevo.")
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Explora 3 álbumes clásicos").assertIsDisplayed()
+        waitForText("No se pudo crear el álbum. Inténtalo de nuevo.")
+        waitForText("Explora 3 álbumes clásicos")
         composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
         assertEquals(sampleAlbums, fakeService.albums)
     }
