@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
 fun AlbumListScreen(
     modifier: Modifier = Modifier,
     onAlbumClick: (Int) -> Unit = {},
+    onCreateAlbumClick: () -> Unit = {},
     viewModel: AlbumListViewModel = viewModel(factory = AlbumListViewModel.Factory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,6 +61,7 @@ fun AlbumListScreen(
         onRetry = viewModel::loadAlbums,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onAlbumClick = onAlbumClick,
+        onCreateAlbumClick = onCreateAlbumClick,
         modifier = modifier,
     )
 }
@@ -72,10 +75,19 @@ fun AlbumListContent(
     modifier: Modifier = Modifier,
     onSearchQueryChange: (String) -> Unit = {},
     onAlbumClick: (Int) -> Unit = {},
+    onCreateAlbumClick: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
         topBar = { VinilosTopBar() },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onCreateAlbumClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add),
+                    contentDescription = stringResource(R.string.album_add),
+                )
+            }
+        },
     ) { innerPadding ->
         val contentModifier = Modifier.padding(innerPadding)
         when (uiState) {
@@ -127,7 +139,8 @@ private fun AlbumGrid(
         columns = GridCells.Adaptive(minSize = 160.dp),
         state = gridState,
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        // Espacio inferior extra para que el botón flotante no cubra la paginación.
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

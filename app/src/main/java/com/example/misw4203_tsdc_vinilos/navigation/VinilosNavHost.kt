@@ -3,10 +3,16 @@ package com.example.misw4203_tsdc_vinilos.navigation
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -15,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosBottomBar
 import com.example.misw4203_tsdc_vinilos.ui.components.VinilosTab
 import com.example.misw4203_tsdc_vinilos.ui.screens.addtrack.AddTrackScreen
@@ -25,6 +32,7 @@ import com.example.misw4203_tsdc_vinilos.ui.screens.artistdetail.ArtistDetailScr
 import com.example.misw4203_tsdc_vinilos.ui.screens.artists.ArtistListScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.collectordetail.CollectorDetailScreen
 import com.example.misw4203_tsdc_vinilos.ui.screens.collectors.CollectorListScreen
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 /** Catálogo de álbumes (HU01). */
@@ -66,10 +74,44 @@ fun VinilosNavHost(
     navController: NavHostController = rememberNavController(),
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val albumSaveError = stringResource(R.string.album_create_save_error)
+    val albumCreated = stringResource(R.string.album_create_snackbar_success)
+    val viewAlbum = stringResource(R.string.album_create_snackbar_view)
+    val albumCreateCancelled = stringResource(R.string.album_create_cancelled)
+
+    // Los avisos se muestran en este Scaffold externo para sobrevivir al cierre de la pantalla de origen.
+    fun showMessage(
+        message: String,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        actionLabel: String? = null,
+        onAction: () -> Unit = {},
+    ) {
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = actionLabel,
+                withDismissAction = true,
+                duration = duration,
+            )
+            if (result == SnackbarResult.ActionPerformed) onAction()
+        }
+    }
+
+    fun navigateToFreshCatalog() {
+        navController.navigate(AlbumListRoute) {
+            popUpTo(AlbumListRoute) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
     val currentTab = remember(navBackStackEntry) { navController.currentTab() }
 
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             VinilosBottomBar(
                 currentTab = currentTab,
@@ -97,7 +139,10 @@ fun VinilosNavHost(
                 AlbumListScreen(
                     onAlbumClick = { albumId ->
                         navController.navigate(AlbumDetailRoute(albumId))
-                    }
+                    },
+                    onCreateAlbumClick = {
+                        navController.navigate(AlbumCreateRoute) { launchSingleTop = true }
+                    },
                 )
             }
             composable<AlbumDetailRoute> { backStackEntry ->
@@ -180,8 +225,25 @@ fun VinilosNavHost(
             }
             composable<AlbumCreateRoute> {
                 AlbumCreateScreen(
-                    onAlbumSubmit = { navController.popBackStack() },
-                    onBack = { navController.popBackStack() },
+                    onAlbumSubmit = { created ->
+                        // Un catálogo nuevo vuelve a consultar la API e incluye el álbum creado.
+                        navigateToFreshCatalog()
+                        showMessage(
+                            message = albumCreated,
+                            actionLabel = viewAlbum,
+                            onAction = { navController.navigate(AlbumDetailRoute(created.id)) },
+                        )
+                    },
+                    onBack = {
+                        if (navController.currentDestination?.hasRoute<AlbumCreateRoute>() == true) {
+                            navController.popBackStack()
+                            showMessage(albumCreateCancelled)
+                        }
+                    },
+                    onAlbumSaveFailed = {
+                        navigateToFreshCatalog()
+                        showMessage(albumSaveError, duration = SnackbarDuration.Long)
+                    },
                 )
             }
         }

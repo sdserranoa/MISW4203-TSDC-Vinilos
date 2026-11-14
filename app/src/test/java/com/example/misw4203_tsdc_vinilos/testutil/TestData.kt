@@ -118,7 +118,8 @@ fun testCollectorAlbum(album: Album, id: Int = album.id) =
 
 /**
  * Servicio falso que responde con datos de prueba, incluidos los álbumes de cada coleccionista en
- * [collectorAlbums] (por id de coleccionista), o lanza [error] si está definido.
+ * [collectorAlbums] (por id de coleccionista), o lanza [error] si está definido. [createError]
+ * permite simular un fallo solo al crear un álbum, sin afectar las consultas.
  */
 class FakeVinilosApiService(
     var albums: List<Album> = emptyList(),
@@ -127,6 +128,7 @@ class FakeVinilosApiService(
     var prizes: List<Prize> = emptyList(),
     var collectors: List<Collector> = emptyList(),
     var error: Throwable? = null,
+    var createError: Throwable? = null,
     var postTrackError: Throwable? = null,
     var collectorAlbums: Map<Int, List<CollectorAlbum>> = emptyMap(),
 ) : VinilosApiService, com.example.misw4203_tsdc_vinilos.data.network.AlbumServiceAdapter {
@@ -162,7 +164,7 @@ class FakeVinilosApiService(
     }
 
     override suspend fun createAlbum(album: Album): Album {
-        (postTrackError ?: error)?.let { throw it }
+        (createError ?: postTrackError ?: error)?.let { throw it }
         val created = if (album.id == 0) album.copy(id = (albums.maxOfOrNull { it.id } ?: 0) + 1) else album
         albums = albums + created
         return created

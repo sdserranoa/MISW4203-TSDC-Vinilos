@@ -22,6 +22,8 @@ internal open class BaseFakeVinilosApiService : VinilosApiService {
     override suspend fun getAlbum(albumId: Int): Album =
         throw NoSuchElementException("Album $albumId not found")
 
+    override suspend fun createAlbum(album: Album): Album = album
+
     override suspend fun postTrack(albumId: Int, track: TrackRequest): Track =
         Track(id = 999, name = track.name, duration = track.duration)
 

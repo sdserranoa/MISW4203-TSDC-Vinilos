@@ -1,5 +1,6 @@
 package com.example.misw4203_tsdc_vinilos.ui.screens.albumCreate
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,6 +56,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -70,24 +73,33 @@ import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.ui.components.LoadingMessage
 import com.example.misw4203_tsdc_vinilos.ui.components.StateMessage
 import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
-import java.time.Instant
-import java.time.ZoneId
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
-/** HU07 - Crear un álbum. */
+/**
+ * HU07 - Crear un álbum.
+ *
+ * [onBack] representa la cancelación (botón Cancelar, flecha superior o atrás del sistema).
+ */
 @Composable
 fun AlbumCreateScreen(
     modifier: Modifier = Modifier,
     viewModel: AlbumCreateViewModel = viewModel(factory = AlbumCreateViewModel.Factory),
-    onAlbumSubmit: () -> Unit,
+    onAlbumSubmit: (Album) -> Unit,
     onBack: () -> Unit,
+    onAlbumSaveFailed: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    BackHandler(onBack = onBack)
 
     AlbumCreateContent(
         modifier = modifier,
         uiState = uiState,
         onBack = onBack,
-        onAlbumSubmit = onAlbumSubmit,
+        onAlbumSubmit = { onAlbumSubmit(viewModel.album) },
         onRetry = viewModel::newAlbum,
         onNameChange = viewModel::onNameChange,
         onCoverChange = viewModel::onCoverChange,
@@ -95,7 +107,12 @@ fun AlbumCreateScreen(
         onGenreChange = viewModel::onGenreChange,
         onRecordLabelChange = viewModel::onRecordLabelChange,
         onDescriptionChange = viewModel::onDescriptionChange,
-        onSaveAlbum = { viewModel.saveAlbum { onAlbumSubmit() } },
+        onSaveAlbum = {
+            viewModel.saveAlbum(
+                onSaveFailed = onAlbumSaveFailed,
+                onSaved = onAlbumSubmit,
+            )
+        },
         onDismissSnackbar = viewModel::dismissSnackbar,
     )
 }
@@ -128,6 +145,7 @@ fun AlbumCreateContent(
                 StickyBottomActionBar(
                     onSave = onSaveAlbum,
                     onCancel = onBack,
+                    showValidationMessage = uiState.validationErrors.isNotEmpty(),
                 )
             }
         },
@@ -146,11 +164,19 @@ fun AlbumCreateContent(
                 onAction = onRetry,
             )
 
+            AlbumCreateUiState.SaveError -> StateMessage(
+                message = stringResource(R.string.album_create_save_error),
+                modifier = contentModifier,
+                actionLabel = stringResource(R.string.back_to_catalog),
+                onAction = onBack,
+            )
+
             is AlbumCreateUiState.Success -> Box(
                 modifier = contentModifier.fillMaxSize(),
             ) {
                 AlbumCreateBody(
                     album = uiState.album,
+                    validationErrors = uiState.validationErrors,
                     onNameChange = onNameChange,
                     onCoverChange = onCoverChange,
                     onReleaseDateChange = onReleaseDateChange,
@@ -256,6 +282,7 @@ fun AlbumCreateBody(
     onRecordLabelChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    validationErrors: Map<AlbumCreateField, AlbumCreateValidationError> = emptyMap(),
 ) {
     val scrollState = rememberScrollState()
     var showDatePicker by remember { mutableStateOf(false) }
@@ -268,15 +295,10 @@ fun AlbumCreateBody(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val localDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.of("UTC"))
-                                .toLocalDate()
-                            val formatted = String.format(
-                                "%04d-%02d-%02d",
-                                localDate.year,
-                                localDate.monthValue,
-                                localDate.dayOfMonth
-                            )
+                            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }
+                            val formatted = formatter.format(Date(millis))
                             onReleaseDateChange(formatted)
                         }
                         showDatePicker = false
@@ -308,6 +330,7 @@ fun AlbumCreateBody(
         // Campo 1: Nombre del Álbum
         FormNameField(
             name = album.name,
+            fieldError = validationErrors[AlbumCreateField.NAME],
             onNameChange = onNameChange,
         )
 
@@ -316,30 +339,35 @@ fun AlbumCreateBody(
             coverUrl = album.cover,
             albumName = album.name,
             releaseYear = album.releaseYear,
+            fieldError = validationErrors[AlbumCreateField.COVER],
             onCoverChange = onCoverChange,
         )
 
         // Campo 3: Fecha de Lanzamiento
         FormReleaseDateField(
             releaseDate = album.releaseDate,
+            fieldError = validationErrors[AlbumCreateField.RELEASE_DATE],
             onOpenDatePicker = { showDatePicker = true },
         )
 
         // Campo 4: Selector de Género
         FormGenreField(
             selectedGenre = album.genre,
+            fieldError = validationErrors[AlbumCreateField.GENRE],
             onGenreChange = onGenreChange,
         )
 
         // Campo 5: Selector de Sello Discográfico
         FormRecordLabelField(
             selectedRecordLabel = album.recordLabel,
+            fieldError = validationErrors[AlbumCreateField.RECORD_LABEL],
             onRecordLabelChange = onRecordLabelChange,
         )
 
         // Campo 6: Descripción del Álbum
         FormDescriptionField(
             description = album.description,
+            fieldError = validationErrors[AlbumCreateField.DESCRIPTION],
             onDescriptionChange = onDescriptionChange,
         )
 
@@ -415,11 +443,14 @@ private fun StatusGuidelinesBanner() {
 @Composable
 private fun FormNameField(
     name: String,
+    fieldError: AlbumCreateValidationError?,
     onNameChange: (String) -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_name_label)
+    val errorMessage = validationErrorMessage(fieldError)
     Column(modifier = Modifier.fillMaxWidth()) {
         FormLabel(
-            label = stringResource(R.string.album_create_name_label),
+            label = label,
             isRequired = true,
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -455,11 +486,14 @@ private fun FormNameField(
                         ),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .formFieldSemantics(label, errorMessage),
                     )
                 }
             }
         }
+        FormFieldError(errorMessage)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -472,7 +506,7 @@ private fun FormNameField(
                 color = MaterialTheme.colorScheme.outline,
             )
             Text(
-                text = "${name.length}/100",
+                text = "${name.codePointCount(0, name.length)}/$MAX_ALBUM_NAME_LENGTH",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
             )
@@ -485,14 +519,17 @@ private fun FormCoverUrlField(
     coverUrl: String,
     albumName: String,
     releaseYear: String,
+    fieldError: AlbumCreateValidationError?,
     onCoverChange: (String) -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_cover_label)
+    val errorMessage = validationErrorMessage(fieldError)
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         FormLabel(
-            label = stringResource(R.string.album_create_cover_label),
+            label = label,
             isRequired = true,
         )
         Surface(
@@ -527,7 +564,9 @@ private fun FormCoverUrlField(
                         ),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .formFieldSemantics(label, errorMessage),
                     )
                 }
                 TextButton(onClick = { }) {
@@ -540,6 +579,7 @@ private fun FormCoverUrlField(
                 }
             }
         }
+        FormFieldError(errorMessage)
 
         // Preview Box (MD3 Card Layout)
         Surface(
@@ -584,7 +624,7 @@ private fun FormCoverUrlField(
 
                     // Cover image foreground
                     AsyncImage(
-                        model = coverUrl.ifBlank { "https://images.vinilos.app/covers/abbey-road.jpg" },
+                        model = coverUrl.takeIf { it.isNotBlank() },
                         contentDescription = stringResource(R.string.album_cover_description, albumName),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -611,7 +651,10 @@ private fun FormCoverUrlField(
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                         )
                         Text(
-                            text = stringResource(R.string.album_create_preview_active),
+                            text = stringResource(
+                                if (coverUrl.isBlank()) R.string.album_create_preview_empty
+                                else R.string.album_create_preview_active
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.primary,
@@ -620,10 +663,11 @@ private fun FormCoverUrlField(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    val displayName = albumName.ifBlank { "Abbey Road" }
-                    val displayYear = releaseYear.ifBlank { "1969" }
+                    val displayName = albumName.ifBlank {
+                        stringResource(R.string.album_create_preview_untitled)
+                    }
                     Text(
-                        text = "$displayName ($displayYear)",
+                        text = if (releaseYear.isBlank()) displayName else "$displayName ($releaseYear)",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -637,32 +681,6 @@ private fun FormCoverUrlField(
                         color = MaterialTheme.colorScheme.outline,
                         maxLines = 1,
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        modifier = Modifier.clickable { },
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_photo_library),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(15.dp),
-                            )
-                            Text(
-                                text = stringResource(R.string.album_create_cover_change),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -672,23 +690,28 @@ private fun FormCoverUrlField(
 @Composable
 private fun FormReleaseDateField(
     releaseDate: String,
+    fieldError: AlbumCreateValidationError?,
     onOpenDatePicker: () -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_release_label)
+    val errorMessage = validationErrorMessage(fieldError)
     Column(modifier = Modifier.fillMaxWidth()) {
         FormLabel(
-            label = stringResource(R.string.album_create_release_label),
+            label = label,
             isRequired = true,
         )
         Spacer(modifier = Modifier.height(6.dp))
 
-        val displayDate = remember(releaseDate) {
-            if (releaseDate.contains("-") && releaseDate.length >= 10) {
-                val parts = releaseDate.take(10).split("-")
-                if (parts.size == 3) "${parts[2]} / ${parts[1]} / ${parts[0]}" else releaseDate
-            } else if (releaseDate.isBlank()) {
-                "26 / 09 / 1969"
-            } else {
-                releaseDate
+        val displayDate = if (releaseDate.isBlank()) {
+            stringResource(R.string.album_create_release_placeholder)
+        } else {
+            remember(releaseDate) {
+                if (releaseDate.contains("-") && releaseDate.length >= 10) {
+                    val parts = releaseDate.take(10).split("-")
+                    if (parts.size == 3) "${parts[2]} / ${parts[1]} / ${parts[0]}" else releaseDate
+                } else {
+                    releaseDate
+                }
             }
         }
 
@@ -697,6 +720,7 @@ private fun FormReleaseDateField(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             modifier = Modifier
                 .fillMaxWidth()
+                .formFieldSemantics(label, errorMessage)
                 .clickable { onOpenDatePicker() },
         ) {
             Row(
@@ -715,7 +739,11 @@ private fun FormReleaseDateField(
                     Text(
                         text = displayDate,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (releaseDate.isBlank()) {
+                            MaterialTheme.colorScheme.outline
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                     )
                 }
                 Icon(
@@ -726,6 +754,7 @@ private fun FormReleaseDateField(
                 )
             }
         }
+        FormFieldError(errorMessage)
         Text(
             text = stringResource(R.string.album_create_release_format),
             style = MaterialTheme.typography.labelSmall,
@@ -738,16 +767,17 @@ private fun FormReleaseDateField(
 @Composable
 private fun FormGenreField(
     selectedGenre: String,
+    fieldError: AlbumCreateValidationError?,
     onGenreChange: (String) -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_genre_label)
+    val errorMessage = validationErrorMessage(fieldError)
     var expanded by remember { mutableStateOf(false) }
-    val genres = remember {
-        listOf("Rock Clásico", "Rock", "Jazz", "Salsa", "Folk", "Indie", "Electrónica")
-    }
+    val genres = ALBUM_GENRES
 
     Column(modifier = Modifier.fillMaxWidth()) {
         FormLabel(
-            label = stringResource(R.string.album_create_genre_label),
+            label = label,
             isRequired = true,
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -758,6 +788,7 @@ private fun FormGenreField(
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .formFieldSemantics(label, errorMessage)
                     .clickable { expanded = true },
             ) {
                 Row(
@@ -774,9 +805,15 @@ private fun FormGenreField(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = selectedGenre.ifBlank { "Rock Clásico" },
+                            text = selectedGenre.ifBlank {
+                                stringResource(R.string.album_create_genre_placeholder)
+                            },
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = if (selectedGenre.isBlank()) {
+                                MaterialTheme.colorScheme.outline
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         )
                     }
                     Icon(
@@ -809,6 +846,7 @@ private fun FormGenreField(
                 }
             }
         }
+        FormFieldError(errorMessage)
 
         // Quick Genre Badges (Moments of Delight)
         Row(
@@ -818,25 +856,13 @@ private fun FormGenreField(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val quickChips = listOf("Rock Clásico", "Jazz", "Salsa Brava", "Folk Acústico")
-            quickChips.forEach { chipText ->
-                val isSelected = selectedGenre.equals(chipText, ignoreCase = true) ||
-                        (selectedGenre == "Rock Clásico" && chipText == "Rock Clásico") ||
-                        (selectedGenre == "Jazz" && chipText == "Jazz") ||
-                        (selectedGenre == "Salsa" && chipText == "Salsa Brava") ||
-                        (selectedGenre == "Folk" && chipText == "Folk Acústico")
+            ALBUM_GENRES.forEach { chipText ->
+                val isSelected = selectedGenre == chipText
 
                 Surface(
                     shape = CircleShape,
                     color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceContainerLow,
-                    modifier = Modifier.clickable {
-                        val mapped = when (chipText) {
-                            "Salsa Brava" -> "Salsa"
-                            "Folk Acústico" -> "Folk"
-                            else -> chipText
-                        }
-                        onGenreChange(mapped)
-                    },
+                    modifier = Modifier.clickable { onGenreChange(chipText) },
                 ) {
                     Text(
                         text = if (isSelected) "✓ $chipText" else chipText,
@@ -853,16 +879,17 @@ private fun FormGenreField(
 @Composable
 private fun FormRecordLabelField(
     selectedRecordLabel: String,
+    fieldError: AlbumCreateValidationError?,
     onRecordLabelChange: (String) -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_label_label)
+    val errorMessage = validationErrorMessage(fieldError)
     var expanded by remember { mutableStateOf(false) }
-    val recordLabels = remember {
-        listOf("Apple Records / EMI", "Sony Music", "Columbia Records", "Fania All-Stars", "Atlantic Records", "Blue Note")
-    }
+    val recordLabels = ALBUM_RECORD_LABELS
 
     Column(modifier = Modifier.fillMaxWidth()) {
         FormLabel(
-            label = stringResource(R.string.album_create_label_label),
+            label = label,
             isRequired = true,
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -873,6 +900,7 @@ private fun FormRecordLabelField(
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .formFieldSemantics(label, errorMessage)
                     .clickable { expanded = true },
             ) {
                 Row(
@@ -889,9 +917,15 @@ private fun FormRecordLabelField(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = selectedRecordLabel.ifBlank { "Apple Records / EMI" },
+                            text = selectedRecordLabel.ifBlank {
+                                stringResource(R.string.album_create_label_placeholder)
+                            },
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = if (selectedRecordLabel.isBlank()) {
+                                MaterialTheme.colorScheme.outline
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         )
                     }
                     Icon(
@@ -924,17 +958,21 @@ private fun FormRecordLabelField(
                 }
             }
         }
+        FormFieldError(errorMessage)
     }
 }
 
 @Composable
 private fun FormDescriptionField(
     description: String,
+    fieldError: AlbumCreateValidationError?,
     onDescriptionChange: (String) -> Unit,
 ) {
+    val label = stringResource(R.string.album_create_desc_label)
+    val errorMessage = validationErrorMessage(fieldError)
     Column(modifier = Modifier.fillMaxWidth()) {
         FormLabel(
-            label = stringResource(R.string.album_create_desc_label),
+            label = label,
             isRequired = true,
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -961,10 +999,13 @@ private fun FormDescriptionField(
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     minLines = 4,
                     maxLines = 6,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .formFieldSemantics(label, errorMessage),
                 )
             }
         }
+        FormFieldError(errorMessage)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -977,7 +1018,7 @@ private fun FormDescriptionField(
                 color = MaterialTheme.colorScheme.outline,
             )
             Text(
-                text = "${description.length}/500",
+                text = "${description.length}/$MAX_ALBUM_DESCRIPTION_LENGTH",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
             )
@@ -1054,6 +1095,38 @@ private fun FormLabel(
 }
 
 @Composable
+private fun validationErrorMessage(fieldError: AlbumCreateValidationError?): String? {
+    val message = when (fieldError) {
+        AlbumCreateValidationError.REQUIRED -> R.string.album_create_field_required
+        AlbumCreateValidationError.INVALID_TEXT -> R.string.album_create_invalid_text
+        AlbumCreateValidationError.NAME_TOO_LONG -> R.string.album_create_name_too_long
+        AlbumCreateValidationError.INVALID_URL -> R.string.album_create_invalid_url
+        AlbumCreateValidationError.INVALID_DATE -> R.string.album_create_invalid_date
+        AlbumCreateValidationError.INVALID_OPTION -> R.string.album_create_invalid_option
+        null -> return null
+    }
+    return stringResource(message)
+}
+
+private fun Modifier.formFieldSemantics(label: String, errorMessage: String?): Modifier =
+    semantics {
+        contentDescription = label
+        if (errorMessage != null) error(errorMessage)
+    }
+
+@Composable
+private fun FormFieldError(message: String?) {
+    if (message != null) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+        )
+    }
+}
+
+@Composable
 fun SuccessSnackbar(
     onViewAlbum: () -> Unit,
     onDismiss: () -> Unit,
@@ -1126,6 +1199,7 @@ fun StickyBottomActionBar(
     onSave: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    showValidationMessage: Boolean = false,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.95f),
@@ -1138,6 +1212,13 @@ fun StickyBottomActionBar(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            if (showValidationMessage) {
+                Text(
+                    text = stringResource(R.string.album_create_validation_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Button(
                 onClick = onSave,
                 shape = CircleShape,
@@ -1187,23 +1268,14 @@ fun StickyBottomActionBar(
 @Preview(name = "Formulario de Creación", showBackground = true, backgroundColor = 0xFF131313)
 @Composable
 private fun AlbumCreateContentPreview() {
-    val sampleAlbum = Album(
+    val emptyAlbum = Album(
         id = 0,
-        name = "Abbey Road",
-        cover = "https://images.vinilos.app/covers/abbey-road.jpg",
-        releaseDate = "1969-09-26",
-        description = "Undécimo álbum de estudio publicado por la banda británica The Beatles en 1969. Destacado por su célebre medley en la cara B y producido meticulosamente por George Martin en los estudios londinenses de Abbey Road.",
-        genre = "Rock Clásico",
-        recordLabel = "Apple Records / EMI",
+        name = "",
+        cover = "",
+        releaseDate = "",
+        genre = "",
     )
-    MISW4203TSDCVinilosTheme {
-        AlbumCreateContent(
-            uiState = AlbumCreateUiState.Success(album = sampleAlbum),
-            onBack = {},
-            onAlbumSubmit = {},
-            onRetry = {},
-        )
-    }
+    InteractiveAlbumCreatePreview(initialAlbum = emptyAlbum)
 }
 
 @Preview(name = "Con Snackbar de Éxito", showBackground = true, backgroundColor = 0xFF131313)
@@ -1215,18 +1287,45 @@ private fun AlbumCreateContentSnackbarPreview() {
         cover = "https://images.vinilos.app/covers/abbey-road.jpg",
         releaseDate = "1969-09-26",
         description = "Undécimo álbum de estudio publicado por la banda británica The Beatles en 1969.",
-        genre = "Rock Clásico",
-        recordLabel = "Apple Records / EMI",
+        genre = "Rock",
+        recordLabel = "EMI",
     )
+    InteractiveAlbumCreatePreview(initialAlbum = sampleAlbum, showSnackbar = true)
+}
+
+@Composable
+private fun InteractiveAlbumCreatePreview(
+    initialAlbum: Album,
+    showSnackbar: Boolean = false,
+) {
+    var album by remember { mutableStateOf(initialAlbum) }
+    var snackbarVisible by remember { mutableStateOf(showSnackbar) }
+    var validationAttempted by remember { mutableStateOf(false) }
+
     MISW4203TSDCVinilosTheme {
         AlbumCreateContent(
             uiState = AlbumCreateUiState.Success(
-                album = sampleAlbum,
-                showSnackbar = true,
+                album = album,
+                showSnackbar = snackbarVisible,
+                validationErrors = if (validationAttempted) validateAlbum(album) else emptyMap(),
             ),
             onBack = {},
             onAlbumSubmit = {},
             onRetry = {},
+            onNameChange = {
+                if (it.codePointCount(0, it.length) <= MAX_ALBUM_NAME_LENGTH) {
+                    album = album.copy(name = it)
+                }
+            },
+            onCoverChange = { album = album.copy(cover = it) },
+            onReleaseDateChange = { album = album.copy(releaseDate = it) },
+            onGenreChange = { album = album.copy(genre = it) },
+            onRecordLabelChange = { album = album.copy(recordLabel = it) },
+            onDescriptionChange = {
+                if (it.length <= MAX_ALBUM_DESCRIPTION_LENGTH) album = album.copy(description = it)
+            },
+            onSaveAlbum = { validationAttempted = true },
+            onDismissSnackbar = { snackbarVisible = false },
         )
     }
 }

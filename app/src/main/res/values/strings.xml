@@ -15,6 +15,7 @@
     <string name="album_search_clear">Limpiar búsqueda</string>
     <string name="album_search_empty">No se encontraron álbumes para \"%1$s\".</string>
     <string name="retry">Reintentar</string>
+    <string name="album_add">Agregar álbum</string>
 
     <!-- Paginación -->
     <string name="pagination_label">Pág. %1$d de %2$d</string>
@@ -34,22 +35,35 @@
     <string name="album_create_title">Nuevo Álbum</string>
     <string name="album_create_loading">Cargando formulario de creación del álbum…</string>
     <string name="album_create_error">Ocurrió un error al cargar el formulario. Por favor, comunícate con el administrador.</string>
+    <string name="album_create_save_error">No se pudo crear el álbum. Inténtalo de nuevo.</string>
+    <string name="album_create_cancelled">Se canceló la creación del álbum.</string>
     <string name="album_create_banner_title">INFORMACIÓN DEL VINILO</string>
     <string name="album_create_banner_subtitle">Campos obligatorios marcados con asterisco (*)</string>
     <string name="album_create_badge_hu">HU07</string>
     <string name="album_create_name_label">Nombre del álbum</string>
     <string name="album_create_name_placeholder">Ej: A Night at the Opera</string>
     <string name="album_create_name_max_chars">Máx. 100 caracteres</string>
+    <string name="album_create_field_required">Este campo es obligatorio.</string>
+    <string name="album_create_invalid_text">Incluye al menos una letra o un número; solo se permiten letras, números, espacios y signos de puntuación.</string>
+    <string name="album_create_name_too_long">El nombre no puede superar los 100 caracteres.</string>
+    <string name="album_create_invalid_url">Ingresa una URL válida que comience con http:// o https://.</string>
+    <string name="album_create_invalid_date">Selecciona una fecha válida.</string>
+    <string name="album_create_invalid_option">Selecciona una opción de la lista.</string>
+    <string name="album_create_validation_summary">Revisa los campos obligatorios y corrige los errores.</string>
     <string name="album_create_cover_label">URL de la carátula</string>
     <string name="album_create_cover_placeholder">https://...</string>
     <string name="album_create_cover_test">Probar</string>
     <string name="album_create_preview_active">Vista previa activa</string>
+    <string name="album_create_preview_empty">Vista previa sin carátula</string>
+    <string name="album_create_preview_untitled">Sin nombre</string>
     <string name="album_create_preview_dims">1000 × 1000 px • 300 DPI</string>
-    <string name="album_create_cover_change">Cambiar carátula</string>
     <string name="album_create_release_label">Fecha de lanzamiento</string>
+    <string name="album_create_release_placeholder">Selecciona una fecha</string>
     <string name="album_create_release_format">Formato DD / MM / AAAA</string>
     <string name="album_create_genre_label">Género musical</string>
+    <string name="album_create_genre_placeholder">Selecciona un género</string>
     <string name="album_create_label_label">Sello discográfico</string>
+    <string name="album_create_label_placeholder">Selecciona un sello discográfico</string>
     <string name="album_create_desc_label">Descripción curatorial</string>
     <string name="album_create_desc_placeholder">Escribe el contexto histórico, detalles de masterización o relevancia de este prensado...</string>
     <string name="album_create_desc_notes">Incluye notas sobre el estado o edición</string>
