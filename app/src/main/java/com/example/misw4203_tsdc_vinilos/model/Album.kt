@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Album(
-    val id: Int,
+    // Con valor por defecto 0 el id no se serializa al crear: BackVynils rechaza claves desconocidas.
+    val id: Int = 0,
     val name: String,
     val cover: String,
     val releaseDate: String,

@@ -21,6 +21,8 @@ class AlbumRepository(
         }
     }
 
+    suspend fun createAlbum(album: Album): Album = serviceAdapter.createAlbum(album)
+
     suspend fun addTrackToAlbum(albumId: Int, name: String, duration: String): Track {
         val request = TrackRequest(name = name, duration = duration)
         return serviceAdapter.postTrack(albumId, request)

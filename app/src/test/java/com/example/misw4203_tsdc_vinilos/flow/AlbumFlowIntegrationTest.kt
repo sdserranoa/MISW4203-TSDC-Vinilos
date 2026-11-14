@@ -1,6 +1,12 @@
 package com.example.misw4203_tsdc_vinilos.flow
 
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -8,26 +14,38 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.misw4203_tsdc_vinilos.data.network.VinilosApi
 import com.example.misw4203_tsdc_vinilos.model.Comment
 import com.example.misw4203_tsdc_vinilos.model.CommentCollector
 import com.example.misw4203_tsdc_vinilos.model.Performer
 import com.example.misw4203_tsdc_vinilos.model.Track
+import com.example.misw4203_tsdc_vinilos.navigation.AlbumCreateRoute
+import com.example.misw4203_tsdc_vinilos.navigation.AlbumListRoute
 import com.example.misw4203_tsdc_vinilos.navigation.VinilosNavHost
 import com.example.misw4203_tsdc_vinilos.testutil.FakeVinilosApiService
 import com.example.misw4203_tsdc_vinilos.testutil.testAlbum
+import com.example.misw4203_tsdc_vinilos.ui.screens.albumCreate.AlbumCreateViewModel
 import com.example.misw4203_tsdc_vinilos.ui.theme.MISW4203TSDCVinilosTheme
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 /**
- * Pruebas de integración del flujo completo de usuario (HU01 - Catálogo y HU02 - Detalle),
+ * Pruebas de integración del catálogo (HU01), detalle (HU02) y creación de álbumes (HU07),
  * ejecutadas en la JVM con Robolectric sobre una pantalla de teléfono de 411 x 891 dp
  * a través de múltiples versiones de Android SDK ([23, 26, 34, 35, 36]).
  *
@@ -39,6 +57,9 @@ import org.robolectric.annotation.Config
  * 5. Navegación por las tres pestañas de contenido (`Canciones`, `Intérpretes`, `Comentarios`).
  * 6. Retorno al catálogo general mediante el botón de navegación superior.
  * 7. Flujos alternos con estados vacíos y consultas sin resultados.
+ * 8. Creación de álbumes (HU07) desde el botón "Agregar álbum": creación exitosa con confirmación
+ *    y catálogo actualizado, formulario incompleto, cancelación (botón y atrás del sistema)
+ *    y retorno al catálogo con notificación cuando falla la creación.
  */
  
 @RunWith(RobolectricTestRunner::class)
@@ -126,6 +147,34 @@ class AlbumFlowIntegrationTest {
                 VinilosNavHost()
             }
         }
+    }
+
+    private fun waitForText(text: String) {
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeTestRule.onNodeWithText(text).assertIsDisplayed()
+    }
+
+    /** Diligencia todos los campos de HU07 a través de la interfaz, incluidos el calendario y los selectores. */
+    private fun fillValidAlbumForm(name: String = "Álbum 2024") {
+        composeTestRule.onNodeWithContentDescription("Nombre del álbum").performTextInput(name)
+        composeTestRule.onNodeWithContentDescription("URL de la carátula")
+            .performScrollTo().performTextInput("https://example.invalid/cover.jpg")
+        composeTestRule.onNodeWithContentDescription("Fecha de lanzamiento")
+            .performScrollTo().performClick()
+        composeTestRule.onAllNodes(hasClickAction() and hasText("15", substring = true))
+            .onFirst().performClick()
+        composeTestRule.onNodeWithText("OK").performClick()
+        // La fila de géneros se desplaza horizontalmente: se lleva a la vista el campo siguiente
+        // para que los chips no queden bajo la barra fija de acciones.
+        composeTestRule.onNodeWithContentDescription("Sello discográfico").performScrollTo()
+        composeTestRule.onNodeWithText("Folk").performScrollTo().performClick()
+        composeTestRule.onNodeWithContentDescription("Sello discográfico")
+            .performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Sony Music").performClick()
+        composeTestRule.onNodeWithContentDescription("Descripción curatorial")
+            .performScrollTo().performTextInput("Música clásica, edición 2024.")
     }
 
     @Test
@@ -249,5 +298,135 @@ class AlbumFlowIntegrationTest {
 
         composeTestRule.onNodeWithText("Coleccionistas").performClick()
         composeTestRule.onNodeWithText("Álbumes").assertIsDisplayed()
+    }
+
+    @Test
+    fun errorAlCrearAlbum_regresaAlCatalogoYNotificaSinGuardar() {
+        lateinit var navController: NavHostController
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                navController = rememberNavController()
+                VinilosNavHost(navController = navController)
+            }
+        }
+
+        composeTestRule.onNodeWithText("Buscando América").performClick()
+        composeTestRule.runOnIdle {
+            navController.navigate(AlbumCreateRoute)
+        }
+        composeTestRule.onNodeWithText("Nuevo Álbum").assertIsDisplayed()
+        composeTestRule.runOnIdle {
+            val entry = navController.getBackStackEntry(AlbumCreateRoute)
+            val viewModel = ViewModelProvider(entry, AlbumCreateViewModel.Factory)
+                .get(AlbumCreateViewModel::class.java)
+            viewModel.onNameChange("Álbum 2024")
+            viewModel.onCoverChange("https://example.invalid/cover.jpg")
+            viewModel.onReleaseDateChange("2024-02-29")
+            viewModel.onGenreChange("Rock")
+            viewModel.onRecordLabelChange("Sony Music")
+            viewModel.onDescriptionChange("Música clásica, edición 2024.")
+            fakeService.createError = IOException("Network unavailable")
+        }
+
+        composeTestRule.onNodeWithText("Guardar Álbum").performClick()
+
+        composeTestRule.onNodeWithText("No se pudo crear el álbum. Inténtalo de nuevo.")
+            .assertIsDisplayed()
+        composeTestRule.onNodeWithText("Explora 3 álbumes clásicos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
+        composeTestRule.runOnIdle {
+            assertTrue(navController.currentDestination?.hasRoute<AlbumListRoute>() == true)
+            assertNull(navController.previousBackStackEntry)
+            assertEquals(sampleAlbums, fakeService.albums)
+        }
+    }
+
+    @Test
+    fun crearAlbum_desdeCatalogo_confirmaCreacionYMuestraAlbumEnElListado() {
+        setContent()
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum").performClick()
+        composeTestRule.onNodeWithText("Nuevo Álbum").assertIsDisplayed()
+        fillValidAlbumForm()
+        composeTestRule.onNodeWithText("Guardar Álbum").performClick()
+
+        // Confirmación de creación exitosa y catálogo actualizado con el nuevo álbum
+        waitForText("Álbum creado exitosamente")
+        waitForText("Explora 4 álbumes clásicos")
+        composeTestRule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Álbum 2024"))
+        composeTestRule.onNodeWithText("Álbum 2024").assertIsDisplayed()
+        val created = fakeService.albums.last()
+        assertEquals("Álbum 2024", created.name)
+        assertEquals("Folk", created.genre)
+        assertEquals("Sony Music", created.recordLabel)
+
+        // La acción de la notificación abre el detalle del álbum creado
+        composeTestRule.onNodeWithText("VER ÁLBUM").performClick()
+        composeTestRule.onNodeWithText("Detalle de Álbum").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Álbum 2024").assertIsDisplayed()
+    }
+
+    @Test
+    fun crearAlbum_formularioIncompleto_noCreaYPermaneceEnElFormulario() {
+        setContent()
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum").performClick()
+        composeTestRule.onNodeWithContentDescription("Nombre del álbum").performTextInput("Álbum 2024")
+        composeTestRule.onNodeWithText("Guardar Álbum").performClick()
+
+        composeTestRule.onNodeWithText("Revisa los campos obligatorios y corrige los errores.")
+            .assertIsDisplayed()
+        composeTestRule.onAllNodesWithText("Este campo es obligatorio.").assertCountEquals(5)
+        composeTestRule.onNodeWithText("Nuevo Álbum").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
+        assertEquals(sampleAlbums, fakeService.albums)
+    }
+
+    @Test
+    fun crearAlbum_cancelarConBoton_noCreaYNotificaCancelacion() {
+        setContent()
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum").performClick()
+        fillValidAlbumForm()
+        composeTestRule.onNodeWithText("Cancelar").performClick()
+
+        composeTestRule.onNodeWithText("Se canceló la creación del álbum.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Explora 3 álbumes clásicos").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
+        assertEquals(sampleAlbums, fakeService.albums)
+    }
+
+    @Test
+    fun crearAlbum_atrasDelSistema_noCreaYNotificaCancelacion() {
+        lateinit var backDispatcher: OnBackPressedDispatcher
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                backDispatcher = LocalOnBackPressedDispatcherOwner.current!!.onBackPressedDispatcher
+                VinilosNavHost()
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum").performClick()
+        composeTestRule.onNodeWithContentDescription("Nombre del álbum").performTextInput("Álbum 2024")
+        composeTestRule.runOnIdle { backDispatcher.onBackPressed() }
+
+        composeTestRule.onNodeWithText("Se canceló la creación del álbum.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Explora 3 álbumes clásicos").assertIsDisplayed()
+        assertEquals(sampleAlbums, fakeService.albums)
+    }
+
+    @Test
+    fun crearAlbum_errorDelServidorDesdeCatalogo_regresaAlCatalogoYNotificaSinGuardar() {
+        setContent()
+        fakeService.createError = IOException("Network unavailable")
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum").performClick()
+        fillValidAlbumForm()
+        composeTestRule.onNodeWithText("Guardar Álbum").performClick()
+
+        waitForText("No se pudo crear el álbum. Inténtalo de nuevo.")
+        waitForText("Explora 3 álbumes clásicos")
+        composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
+        assertEquals(sampleAlbums, fakeService.albums)
     }
 }

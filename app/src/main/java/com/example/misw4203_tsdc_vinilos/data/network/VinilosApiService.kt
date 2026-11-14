@@ -19,6 +19,9 @@ interface VinilosApiService {
     @GET("albums/{id}")
     suspend fun getAlbum(@Path("id") albumId: Int): Album
 
+    @POST("albums")
+    suspend fun createAlbum(@Body album: Album): Album
+
     @POST("albums/{id}/tracks")
     suspend fun postTrack(
         @Path("id") albumId: Int,

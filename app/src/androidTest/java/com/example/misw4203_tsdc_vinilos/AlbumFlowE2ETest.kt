@@ -104,6 +104,7 @@ class AlbumFlowE2ETest {
             override suspend fun getAlbum(albumId: Int): Album =
                 testAlbums.firstOrNull { it.id == albumId }
                     ?: throw NoSuchElementException("Album $albumId not found")
+            override suspend fun createAlbum(album: Album): Album = album
         }
 
         @JvmStatic

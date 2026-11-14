@@ -14,10 +14,11 @@ data class TrackRequest(
     val duration: String,
 )
 
-/** Adaptador de servicio para el dominio de álbumes y canciones (HU01, HU02, HU08). */
+/** Adaptador de servicio para el dominio de álbumes y canciones (HU01, HU02, HU07, HU08). */
 interface AlbumServiceAdapter {
     suspend fun getAlbums(): List<Album>
-    suspend fun getAlbum(id: Int): Album
+    suspend fun getAlbum(albumId: Int): Album
+    suspend fun createAlbum(album: Album): Album
     suspend fun postTrack(albumId: Int, track: TrackRequest): Track
 }
 
@@ -30,8 +31,11 @@ class RetrofitAlbumServiceAdapter(
     override suspend fun getAlbums(): List<Album> =
         withContext(ioDispatcher) { api.getAlbums() }
 
-    override suspend fun getAlbum(id: Int): Album =
-        withContext(ioDispatcher) { api.getAlbum(id) }
+    override suspend fun getAlbum(albumId: Int): Album =
+        withContext(ioDispatcher) { api.getAlbum(albumId) }
+
+    override suspend fun createAlbum(album: Album): Album =
+        withContext(ioDispatcher) { api.createAlbum(album) }
 
     override suspend fun postTrack(albumId: Int, track: TrackRequest): Track =
         withContext(ioDispatcher) { api.postTrack(albumId, track) }

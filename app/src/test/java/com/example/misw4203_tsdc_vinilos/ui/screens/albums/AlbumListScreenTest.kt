@@ -284,4 +284,25 @@ class AlbumListScreenTest {
         composeTestRule.onNodeWithText("No se encontraron álbumes para \"Inexistente\".")
             .assertIsDisplayed()
     }
+
+    @Test
+    fun botonAgregarAlbum_seMuestraEnCualquierEstadoYEjecutaCallback() {
+        var createClicks = 0
+        composeTestRule.setContent {
+            MISW4203TSDCVinilosTheme {
+                AlbumListContent(
+                    uiState = AlbumListUiState.Empty,
+                    onPreviousPage = {},
+                    onNextPage = {},
+                    onRetry = {},
+                    onCreateAlbumClick = { createClicks++ },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription("Agregar álbum")
+            .assertIsDisplayed()
+            .performClick()
+        assertEquals(1, createClicks)
+    }
 }
