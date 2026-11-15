@@ -1,0 +1,14 @@
+Dispositivo: SM-S721B · Android 16 (API 36)
+Arranque en frío (mediana de 3): 628 ms
+Memoria total (PSS): 169.7 MB
+Java heap: 33.8 MB
+Native heap: 19.8 MB
+Gráficos: 54.5 MB
+Cuadros dibujados: 3717
+Cuadros con jank: 81 (2.18%)
+Tiempo por cuadro p50 / p90 / p99: 5ms / 9ms / 30ms
+Hilo de UI lento: 74
+Cargas lentas de imágenes: 0
+
+Fila para la wiki:
+| SM-S721B | 16 (API 36) | 628 ms | 169.7 MB | 33.8 MB | 81 (2.18%) | 5ms / 9ms / 30ms |

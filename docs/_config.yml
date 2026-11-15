@@ -1,0 +1,6 @@
+title: "Vinilos App · Análisis de Desempeño"
+description: "Sprint 2 · Micro-optimizaciones, análisis estático (Android Lint) y dinámico en 3 dispositivos Android"
+theme: jekyll-theme-cayman
+markdown: kramdown
+highlighter: rouge
+permalink: /:title/

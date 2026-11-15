@@ -1,0 +1,14 @@
+Dispositivo: Nexus_6P · Android 17 (API 37)
+Arranque en frío (mediana de 3): 446 ms
+Memoria total (PSS): 44.2 MB
+Java heap: 11.2 MB
+Native heap: 17.6 MB
+Gráficos: 0.0 MB
+Cuadros dibujados: 1671
+Cuadros con jank: 30 (1.80%)
+Tiempo por cuadro p50 / p90 / p99: 19ms / 25ms / 53ms
+Hilo de UI lento: 14
+Cargas lentas de imágenes: 1
+
+Fila para la wiki:
+| Nexus_6P | 17 (API 37) | 446 ms | 44.2 MB | 11.2 MB | 30 (1.80%) | 19ms / 25ms / 53ms |
