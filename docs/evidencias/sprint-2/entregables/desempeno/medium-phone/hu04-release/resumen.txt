@@ -1,0 +1,14 @@
+Dispositivo: Medium_Phone · Android 17 (API 37)
+Arranque en frío (mediana de 3): 514 ms
+Memoria total (PSS): 43.0 MB
+Java heap: 15.1 MB
+Native heap: 17.9 MB
+Gráficos: 0.0 MB
+Cuadros dibujados: 1648
+Cuadros con jank: 30 (1.82%)
+Tiempo por cuadro p50 / p90 / p99: 20ms / 23ms / 57ms
+Hilo de UI lento: 13
+Cargas lentas de imágenes: 0
+
+Fila para la wiki:
+| Medium_Phone | 17 (API 37) | 514 ms | 43.0 MB | 15.1 MB | 30 (1.82%) | 20ms / 23ms / 57ms |

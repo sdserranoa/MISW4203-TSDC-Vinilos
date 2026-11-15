@@ -1,0 +1,7 @@
+Fabricante: Google
+Modelo: Nexus_6P
+Android: 17 (API 37)
+RAM: 3.8 GB
+Pantalla: 1440x2560, densidad 560
+Versión de la app: 1.0
+Fecha: 2026-11-15 18:26

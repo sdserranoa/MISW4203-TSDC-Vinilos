@@ -1,0 +1,7 @@
+Fabricante: samsung
+Modelo: SM-S721B
+Android: 16 (API 36)
+RAM: 7.1 GB
+Pantalla: 1080x2340, densidad 450
+Versión de la app: 1.0
+Fecha: 2026-11-11 23:01

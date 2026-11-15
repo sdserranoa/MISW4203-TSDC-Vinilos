@@ -1,0 +1,14 @@
+Dispositivo: Pixel_Compact · Android 17 (API 37)
+Arranque en frío (mediana de 3): 692 ms
+Memoria total (PSS): 50.5 MB
+Java heap: 21.4 MB
+Native heap: 17.6 MB
+Gráficos: 0.0 MB
+Cuadros dibujados: 949
+Cuadros con jank: 142 (14.96%)
+Tiempo por cuadro p50 / p90 / p99: 20ms / 31ms / 61ms
+Hilo de UI lento: 34
+Cargas lentas de imágenes: 3
+
+Fila para la wiki:
+| Pixel_Compact | 17 (API 37) | 692 ms | 50.5 MB | 21.4 MB | 142 (14.96%) | 20ms / 31ms / 61ms |

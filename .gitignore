@@ -46,3 +46,7 @@ local.properties
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Profiling temporary runs
+perfil_*/
+
