@@ -81,6 +81,10 @@ dependencies {
     // Autoridades raíz recientes que Android 6.0 no incluye (issue #108)
     implementation(libs.okhttp.tls)
 
+    // Carga y caché de imágenes con Glide (HU04)
+    implementation(libs.glide)
+    implementation(libs.glide.okhttp3)
+
     // Pruebas Unitarias y Compose en JVM con Robolectric
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

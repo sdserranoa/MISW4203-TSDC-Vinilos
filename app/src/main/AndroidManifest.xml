@@ -28,6 +28,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Registro del módulo de configuración y caché de Glide (HU04) -->
+        <meta-data
+            android:name="com.example.misw4203_tsdc_vinilos.data.network.VinilosGlideModule"
+            android:value="GlideModule" />
     </application>
 
 </manifest>

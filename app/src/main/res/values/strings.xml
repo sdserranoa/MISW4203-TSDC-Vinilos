@@ -10,13 +10,12 @@
     <string name="album_cover_description">Carátula del álbum %1$s</string>
     <string name="albums_loading">Cargando álbumes…</string>
     <string name="albums_empty">No hay álbumes disponibles en este momento.</string>
-    <string name="albums_no_results">No se encontraron álbumes para \"%1$s\".</string>
     <string name="albums_error">Ocurrió un error al cargar los álbumes. Por favor, comunícate con el administrador.</string>
     <string name="album_search_placeholder">Buscar por nombre, género o artista…</string>
     <string name="album_search_clear">Limpiar búsqueda</string>
     <string name="album_search_empty">No se encontraron álbumes para \"%1$s\".</string>
     <string name="retry">Reintentar</string>
-    <string name="search_hint">Buscar por nombre, género o artista…</string>
+    <string name="album_add">Agregar álbum</string>
 
     <!-- Paginación -->
     <string name="pagination_label">Pág. %1$d de %2$d</string>
@@ -28,11 +27,55 @@
     <string name="album_detail_loading">Cargando detalle del álbum…</string>
     <string name="album_detail_error">Ocurrió un error al cargar el álbum. Por favor, comunícate con el administrador.</string>
     <string name="back_to_catalog">Volver al catálogo</string>
-    <string name="favorite_album">Guardar en favoritos</string>
-    <string name="share_album">Compartir álbum</string>
     <string name="audiophile_badge">180g Audiophile Vinyl</string>
     <string name="read_more">Leer más</string>
     <string name="read_less">Leer menos</string>
+
+    <!-- HU07: Crear álbum -->
+    <string name="album_create_title">Nuevo Álbum</string>
+    <string name="album_create_loading">Cargando formulario de creación del álbum…</string>
+    <string name="album_create_error">Ocurrió un error al cargar el formulario. Por favor, comunícate con el administrador.</string>
+    <string name="album_create_save_error">No se pudo crear el álbum. Inténtalo de nuevo.</string>
+    <string name="album_create_cancelled">Se canceló la creación del álbum.</string>
+    <string name="album_create_banner_title">INFORMACIÓN DEL VINILO</string>
+    <string name="album_create_banner_subtitle">Campos obligatorios marcados con asterisco (*)</string>
+    <string name="album_create_badge_hu">HU07</string>
+    <string name="album_create_name_label">Nombre del álbum</string>
+    <string name="album_create_name_placeholder">Ej: A Night at the Opera</string>
+    <string name="album_create_name_max_chars">Máx. 100 caracteres</string>
+    <string name="album_create_field_required">Este campo es obligatorio.</string>
+    <string name="album_create_invalid_text">Incluye al menos una letra o un número; solo se permiten letras, números, espacios y signos de puntuación.</string>
+    <string name="album_create_name_too_long">El nombre no puede superar los 100 caracteres.</string>
+    <string name="album_create_invalid_url">Ingresa una URL válida que comience con http:// o https://.</string>
+    <string name="album_create_invalid_date">Selecciona una fecha válida.</string>
+    <string name="album_create_invalid_option">Selecciona una opción de la lista.</string>
+    <string name="album_create_validation_summary">Revisa los campos obligatorios y corrige los errores.</string>
+    <string name="album_create_cover_label">URL de la carátula</string>
+    <string name="album_create_cover_placeholder">https://...</string>
+    <string name="album_create_cover_test">Probar</string>
+    <string name="album_create_preview_active">Vista previa activa</string>
+    <string name="album_create_preview_empty">Vista previa sin carátula</string>
+    <string name="album_create_preview_untitled">Sin nombre</string>
+    <string name="album_create_preview_dims">1000 × 1000 px • 300 DPI</string>
+    <string name="album_create_release_label">Fecha de lanzamiento</string>
+    <string name="album_create_release_placeholder">Selecciona una fecha</string>
+    <string name="album_create_release_format">Formato DD / MM / AAAA</string>
+    <string name="album_create_genre_label">Género musical</string>
+    <string name="album_create_genre_placeholder">Selecciona un género</string>
+    <string name="album_create_label_label">Sello discográfico</string>
+    <string name="album_create_label_placeholder">Selecciona un sello discográfico</string>
+    <string name="album_create_desc_label">Descripción curatorial</string>
+    <string name="album_create_desc_placeholder">Escribe el contexto histórico, detalles de masterización o relevancia de este prensado...</string>
+    <string name="album_create_desc_notes">Incluye notas sobre el estado o edición</string>
+    <string name="album_create_bento_title">Audio Hi-Res Vinilo</string>
+    <string name="album_create_bento_subtitle">Prensado original 180 gramos • 33⅓ RPM</string>
+    <string name="album_create_snackbar_success">Álbum creado exitosamente</string>
+    <string name="album_create_snackbar_view">VER ÁLBUM</string>
+    <string name="album_create_save_button">Guardar Álbum</string>
+    <string name="album_create_cancel_button">Cancelar</string>
+    <string name="album_create_back">Regresar</string>
+    <string name="album_create_more_options">Más opciones</string>
+
 
     <!-- Pestañas del Detalle -->
     <string name="tab_tracks">Canciones</string>
@@ -41,10 +84,6 @@
 
     <!-- Listado 1: Pistas / Canciones -->
     <string name="tracks_section_title">Pistas del Álbum</string>
-    <plurals name="tracks_count_format">
-        <item quantity="one">%1$d canción</item>
-        <item quantity="other">%1$d canciones</item>
-    </plurals>
     <string name="tracks_sample_button">Muestra 30s</string>
     <string name="tracks_empty">Este álbum aún no tiene pistas registradas en el catálogo.</string>
 
@@ -59,8 +98,100 @@
     <string name="collector_verified">Coleccionista Verificado</string>
     <string name="collector_default_name">Coleccionista</string>
 
+    <!-- HU05: Listado de coleccionistas -->
+    <plurals name="collectors_header">
+        <item quantity="one">%d coleccionista registrado</item>
+        <item quantity="other">%d coleccionistas registrados</item>
+    </plurals>
+    <string name="collectors_loading">Cargando coleccionistas…</string>
+    <string name="collectors_empty">No hay coleccionistas registrados.</string>
+    <string name="collectors_error">Ocurrió un error al cargar los coleccionistas. Por favor, comunícate con el administrador.</string>
+    <string name="collector_search_placeholder">Buscar por nombre…</string>
+    <string name="collector_search_clear">Limpiar búsqueda de coleccionistas</string>
+    <string name="collector_search_empty">No se encontraron coleccionistas para \"%1$s\".</string>
+    <plurals name="collector_album_count">
+        <item quantity="one">%d álbum</item>
+        <item quantity="other">%d álbumes</item>
+    </plurals>
+    <string name="collector_open_detail">Ver detalle de %1$s</string>
+
+    <!-- Detalle de coleccionista -->
+    <string name="collector_detail_title">Detalle de Coleccionista</string>
+    <string name="collector_detail_loading">Cargando información del coleccionista…</string>
+    <string name="collector_detail_error">Ocurrió un error al cargar el coleccionista. Por favor, comunícate con el administrador.</string>
+    <string name="back_to_collectors">Volver a coleccionistas</string>
+    <string name="collector_stat_albums">Álbumes</string>
+    <string name="collector_stat_favorites">Favoritos</string>
+    <string name="collector_stat_comments">Comentarios</string>
+    <string name="collector_phone_description">Teléfono</string>
+    <string name="collector_email_description">Correo electrónico</string>
+
+    <!-- HU06: Listados del detalle de coleccionista -->
+    <string name="collector_tab_albums">Álbumes (%1$d)</string>
+    <string name="collector_tab_artists">Artistas (%1$d)</string>
+    <string name="collector_tab_comments">Comentarios (%1$d)</string>
+    <string name="collector_albums_empty">No hay álbumes registrados para este coleccionista.</string>
+    <string name="collector_artists_empty">No hay artistas favoritos registrados para este coleccionista.</string>
+    <string name="collector_comments_empty">No hay comentarios registrados para este coleccionista.</string>
+    <string name="collector_rating_description">Calificación: %1$d de 5</string>
+    <string name="performer_open_detail">Ver detalle de %1$s</string>
+
     <!-- Navegación principal -->
     <string name="nav_albums">Álbumes</string>
     <string name="nav_artists">Artistas</string>
     <string name="nav_collectors">Coleccionistas</string>
+
+    <!-- HU04: Detalle de Artista -->
+    <string name="artist_detail_title">Detalle de Artista</string>
+    <string name="artist_back">Volver atrás</string>
+    <string name="artist_detail_loading">Cargando perfil del artista…</string>
+    <string name="artist_detail_error">Ocurrió un error al cargar el artista. Por favor, comunícate con el administrador.</string>
+    <string name="artist_verified">Artista Verificado</string>
+    <string name="artist_band_label">Banda: %1$s</string>
+    <string name="artist_add_favorite">Agregar a favoritos</string>
+    <string name="artist_in_favorites">En favoritos</string>
+    <string name="artist_share">Compartir perfil</string>
+    <string name="artist_albums_section">Álbumes asociados (%1$d)</string>
+    <string name="artist_albums_empty">Este artista no tiene álbumes asociados registrados.</string>
+    <string name="artist_awards_section">Premios &amp; Reconocimientos</string>
+    <string name="artist_awards_empty">Este artista no registra premios en el catálogo.</string>
+    <string name="artist_collectors_section">Coleccionistas que lo siguen (%1$d)</string>
+    <string name="artist_collectors_empty">Aún no hay coleccionistas siguiendo a este artista.</string>
+    <string name="artist_members_section">Integrantes de la agrupación (%1$d)</string>
+    <string name="artist_birth_date">Nacimiento: %1$s</string>
+    <string name="artist_creation_date">Creación: %1$s</string>
+    <string name="artist_solo_label">Solista</string>
+    <string name="artist_band_tag">Banda</string>
+
+    <!-- HU03: Consultar listado de artistas -->
+    <plurals name="artists_header">
+        <item quantity="one">Mostrando %d artista • CATÁLOGO VINILOS</item>
+        <item quantity="other">Mostrando %d artistas • CATÁLOGO VINILOS</item>
+    </plurals>
+    <string name="artists_loading">Cargando artistas…</string>
+    <string name="artists_empty">No hay registros disponibles.</string>
+    <string name="artists_error">Ocurrió un error al cargar los artistas. Por favor, comunícate con el administrador.</string>
+    <string name="artist_search_placeholder">Buscar artista o banda…</string>
+    <string name="artist_search_clear">Limpiar búsqueda de artistas</string>
+    <string name="artist_search_empty">No se encontraron registros disponibles para \"%1$s\".</string>
+    <string name="artist_filter_all">Todos</string>
+    <string name="artist_filter_bands">Bandas</string>
+    <string name="artist_filter_solos">Solistas</string>
+    <string name="artist_featured_album">Álbum destacado: %1$s</string>
+
+    <!-- HU08: Asociar tracks con un álbum -->
+    <string name="add_track_screen_title">Nuevo Álbum</string>
+    <string name="add_track_dialog_title">Agregar Canción</string>
+    <string name="add_track_close_description">Cerrar formulario</string>
+    <string name="add_track_name_label">Nombre de la canción *</string>
+    <string name="add_track_name_placeholder">Come Together</string>
+    <string name="add_track_name_helper">Ej. Track 01 - Lado A o Cara B</string>
+    <string name="add_track_duration_label">Duración *</string>
+    <string name="add_track_duration_placeholder">MM:SS (ej. 04:20)</string>
+    <string name="add_track_suggestions_label">Sugerencias frecuentes:</string>
+    <string name="add_track_submit_button">+ Asociar Canción</string>
+    <string name="add_track_cancel_button">Cancelar</string>
+    <string name="add_track_button_album_detail">+ Agregar canción</string>
+    <string name="add_track_loading">Cargando información del álbum…</string>
+    <string name="add_track_error">Ocurrió un error al asociar la canción al álbum. Por favor, comunícate con el administrador.</string>
 </resources>

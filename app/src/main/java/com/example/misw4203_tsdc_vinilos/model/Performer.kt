@@ -20,12 +20,19 @@ data class Performer(
     val description: String = "",
     val birthDate: String = "",
     val creationDate: String = "",
+    val albums: List<Album> = emptyList(),
 ) {
     val isBand: Boolean
         get() = creationDate.isNotBlank()
 
     val performerType: String
         get() = if (isBand) "Banda / Agrupación" else "Músico / Solista"
+
+    val featuredAlbum: String?
+        get() = albums.firstOrNull()?.name
+
+    val albumCount: Int
+        get() = albums.size
 
     /**
      * Sanitiza URLs de Wikimedia Commons que usan miniaturas arbitrarias (`/thumb/.../800px-...`)
