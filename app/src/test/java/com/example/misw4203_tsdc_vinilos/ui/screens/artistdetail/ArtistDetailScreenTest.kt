@@ -37,6 +37,7 @@ class ArtistDetailScreenTest {
         onAlbumClick: (Int) -> Unit = {},
         onMusicianClick: (Int) -> Unit = {},
         onBandClick: (Int) -> Unit = {},
+        onCollectorClick: (Int) -> Unit = {},
     ) {
         composeTestRule.setContent {
             MISW4203TSDCVinilosTheme {
@@ -48,6 +49,7 @@ class ArtistDetailScreenTest {
                     onAlbumClick = onAlbumClick,
                     onMusicianClick = onMusicianClick,
                     onBandClick = onBandClick,
+                    onCollectorClick = onCollectorClick,
                 )
             }
         }
@@ -180,6 +182,25 @@ class ArtistDetailScreenTest {
 
         composeTestRule.onNodeWithText("Coleccionistas que lo siguen (1)").assertIsDisplayed()
         composeTestRule.onNodeWithText("Mateo V.").assertIsDisplayed()
+    }
+
+    @Test
+    fun interaccion_clicEnColeccionista_invocaNavegacion() {
+        var clickedCollectorId: Int? = null
+        val collector = Collector(id = 200, name = "Mateo V.", email = "mateo@example.com")
+        val artist = testArtistDetail(
+            id = 1,
+            name = "Gustavo Cerati",
+            collectors = listOf(collector),
+        )
+
+        setContent(
+            uiState = ArtistDetailUiState.Success(artist = artist),
+            onCollectorClick = { clickedCollectorId = it }
+        )
+
+        composeTestRule.onNodeWithText("Mateo V.").performClick()
+        assertEquals(200, clickedCollectorId)
     }
 
     @Test

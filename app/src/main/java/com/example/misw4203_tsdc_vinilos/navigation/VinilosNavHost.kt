@@ -201,6 +201,9 @@ fun VinilosNavHost(
                     onBandClick = { bandId ->
                         navController.navigate(ArtistDetailRoute(artistId = bandId, isBand = true))
                     },
+                    onCollectorClick = { collectorId ->
+                        navController.navigate(CollectorDetailRoute(collectorId))
+                    },
                 )
             }
             composable<CollectorListRoute> {

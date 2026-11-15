@@ -85,6 +85,7 @@ fun ArtistDetailScreen(
     onAlbumClick: (Int) -> Unit = {},
     onMusicianClick: (Int) -> Unit = {},
     onBandClick: (Int) -> Unit = {},
+    onCollectorClick: (Int) -> Unit = {},
     viewModel: ArtistDetailViewModel = viewModel(
         factory = ArtistDetailViewModel.provideFactory(artistId, isBand)
     ),
@@ -99,6 +100,7 @@ fun ArtistDetailScreen(
         onAlbumClick = onAlbumClick,
         onMusicianClick = onMusicianClick,
         onBandClick = onBandClick,
+        onCollectorClick = onCollectorClick,
     )
 }
 
@@ -112,6 +114,7 @@ fun ArtistDetailContent(
     onAlbumClick: (Int) -> Unit = {},
     onMusicianClick: (Int) -> Unit = {},
     onBandClick: (Int) -> Unit = {},
+    onCollectorClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -229,7 +232,7 @@ fun ArtistDetailContent(
                     ArtistAwardsSection(prizes = artist.prizes)
 
                     // Sección 3: Coleccionistas que lo siguen (Carrusel Horizontal)
-                    ArtistCollectorsSection(collectors = artist.collectors)
+                    ArtistCollectorsSection(collectors = artist.collectors, onCollectorClick = onCollectorClick)
 
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -838,6 +841,7 @@ private fun ArtistAwardsSection(
 @Composable
 private fun ArtistCollectorsSection(
     collectors: List<Collector>,
+    onCollectorClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -879,7 +883,11 @@ private fun ArtistCollectorsSection(
                 ) { collector ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.width(76.dp)
+                        modifier = Modifier
+                            .width(76.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .semantics(mergeDescendants = true) {}
+                            .clickable(role = Role.Button, onClick = { onCollectorClick(collector.id) })
                     ) {
                         val initials = collector.name
                             .split(" ")
