@@ -330,9 +330,8 @@ class AlbumFlowIntegrationTest {
 
         composeTestRule.onNodeWithText("Guardar Álbum").performClick()
 
-        composeTestRule.onNodeWithText("No se pudo crear el álbum. Inténtalo de nuevo.")
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Explora 3 álbumes clásicos").assertIsDisplayed()
+        waitForText("No se pudo crear el álbum. Inténtalo de nuevo.")
+        waitForText("Explora 3 álbumes clásicos")
         composeTestRule.onNodeWithText("Álbum creado exitosamente").assertDoesNotExist()
         composeTestRule.runOnIdle {
             assertTrue(navController.currentDestination?.hasRoute<AlbumListRoute>() == true)
