@@ -213,9 +213,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## Instalación del APK (Sprint 1)
+## Instalación del APK
 
-El APK listo para instalar está en [`apk/vinilos-sprint1.apk`](apk/vinilos-sprint1.apk) y como archivo adjunto del release del Sprint 1 en [Releases](https://github.com/sdserranoa/MISW4203-TSDC-Vinilos/releases). Requiere **Android 6.0 (API 23) o superior**.
+El APK listo para instalar está como archivo adjunto del release del Sprint 2 en [Releases](https://github.com/sdserranoa/MISW4203-TSDC-Vinilos/releases). Requiere **Android 6.0 (API 23) o superior**.
 
 > **Nota — versión mínima SDK 23:** la app está construida con Jetpack Compose, cuyas librerías actuales exigen como mínimo Android 6.0 (API 23); por eso no se instala en Android 5.x Lollipop. Los tutores del curso confirmaron que en apps con Jetpack Compose se puede usar SDK 23 como versión mínima.
 
@@ -251,7 +251,7 @@ Verifique que la API responde abriendo <http://localhost:3000/albums> en el nave
 **Emulador de Android Studio (Android 6.0 o superior):**
 
 ```bash
-adb install -r vinilos-sprint1.apk
+adb install -r vinilos-sprint2.apk
 ```
 
 También puede arrastrar el archivo APK sobre la ventana del emulador. No requiere configuración adicional.
@@ -263,7 +263,7 @@ También puede arrastrar el archivo APK sobre la ventana del emulador. No requie
 
    ```bash
    adb reverse tcp:3000 tcp:3000
-   adb install -r vinilos-sprint1.apk
+   adb install -r vinilos-sprint2.apk
    ```
 
 3. Abra **Vinilos**. Si desconecta el cable o reinicia `adb`, vuelva a ejecutar `adb reverse tcp:3000 tcp:3000`.
