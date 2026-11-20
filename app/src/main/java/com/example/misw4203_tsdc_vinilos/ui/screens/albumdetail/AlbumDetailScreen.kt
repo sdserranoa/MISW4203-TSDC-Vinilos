@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +55,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -63,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.util.Locale
 import com.example.misw4203_tsdc_vinilos.R
 import com.example.misw4203_tsdc_vinilos.model.Album
 import com.example.misw4203_tsdc_vinilos.model.Comment
@@ -343,15 +348,21 @@ fun AlbumDetailTabs(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = 4.dp)
+                    .selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 AlbumDetailTab.entries.forEach { tab ->
                     val isSelected = tab == selectedTab
                     Column(
                         modifier = Modifier
-                            .clickable { onTabSelected(tab) }
-                            .padding(vertical = 8.dp),
+                            .minimumInteractiveComponentSize()
+                            .selectable(
+                                selected = isSelected,
+                                role = Role.Tab,
+                                onClick = { onTabSelected(tab) },
+                            )
+                            .padding(vertical = 8.dp, horizontal = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
@@ -506,6 +517,7 @@ fun TrackListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -758,9 +770,12 @@ fun AlbumCommentsSection(
                             shape = RoundedCornerShape(50),
                             color = Amber.copy(alpha = 0.15f),
                             border = BorderStroke(0.5.dp, Amber.copy(alpha = 0.35f)),
+                            modifier = Modifier.semantics {
+                                contentDescription = "Calificación promedio: ${String.format(Locale.getDefault(), "%.1f", avgRating)} de 5 estrellas"
+                            },
                         ) {
                             Text(
-                                text = String.format("%.1f / 5.0", avgRating),
+                                text = String.format(Locale.getDefault(), "%.1f / 5.0", avgRating),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = Amber,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),

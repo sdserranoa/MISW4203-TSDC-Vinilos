@@ -46,7 +46,7 @@ fun VinilosBottomBar(
                 icon = {
                     Icon(
                         painter = painterResource(tab.iconRes),
-                        contentDescription = stringResource(tab.labelRes),
+                        contentDescription = null,
                     )
                 },
                 label = {
