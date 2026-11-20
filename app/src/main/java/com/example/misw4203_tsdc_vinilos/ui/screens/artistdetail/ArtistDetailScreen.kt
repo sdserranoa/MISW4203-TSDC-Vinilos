@@ -111,11 +111,11 @@ fun ArtistDetailContent(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
     onAlbumClick: (Int) -> Unit = {},
     onMusicianClick: (Int) -> Unit = {},
     onBandClick: (Int) -> Unit = {},
     onCollectorClick: (Int) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
@@ -390,11 +390,12 @@ private fun ArtistHeroSection(
                             Surface(
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier.clickable { onBandClick(band.id) }
+                                modifier = Modifier
+                                    .clickable(role = Role.Button) { onBandClick(band.id) }
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_mic),
@@ -431,7 +432,7 @@ private fun ArtistHeroSection(
                     ),
                     modifier = Modifier
                         .fillMaxWidth(0.85f)
-                        .height(46.dp)
+                        .height(48.dp)
                 ) {
                     Icon(
                         painter = painterResource(
@@ -841,8 +842,8 @@ private fun ArtistAwardsSection(
 @Composable
 private fun ArtistCollectorsSection(
     collectors: List<Collector>,
-    onCollectorClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
+    onCollectorClick: (Int) -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(

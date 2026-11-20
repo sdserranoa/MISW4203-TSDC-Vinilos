@@ -164,7 +164,7 @@ private fun ArtistAvatar(
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mic),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.performer_avatar_description, name),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp),
                 )
