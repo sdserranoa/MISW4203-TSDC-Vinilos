@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.heading
@@ -475,7 +476,7 @@ private fun FormNameField(
                         Text(
                             text = stringResource(R.string.album_create_name_placeholder),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     BasicTextField(
@@ -503,12 +504,12 @@ private fun FormNameField(
             Text(
                 text = stringResource(R.string.album_create_name_max_chars),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "${name.codePointCount(0, name.length)}/$MAX_ALBUM_NAME_LENGTH",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -553,7 +554,7 @@ private fun FormCoverUrlField(
                         Text(
                             text = stringResource(R.string.album_create_cover_placeholder),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     BasicTextField(
@@ -678,7 +679,7 @@ private fun FormCoverUrlField(
                     Text(
                         text = stringResource(R.string.album_create_preview_dims),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                     )
                 }
@@ -740,7 +741,7 @@ private fun FormReleaseDateField(
                         text = displayDate,
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (releaseDate.isBlank()) {
-                            MaterialTheme.colorScheme.outline
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
@@ -758,7 +759,7 @@ private fun FormReleaseDateField(
         Text(
             text = stringResource(R.string.album_create_release_format),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.outline,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, start = 4.dp),
         )
     }
@@ -810,7 +811,7 @@ private fun FormGenreField(
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (selectedGenre.isBlank()) {
-                                MaterialTheme.colorScheme.outline
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             } else {
                                 MaterialTheme.colorScheme.onSurface
                             },
@@ -922,7 +923,7 @@ private fun FormRecordLabelField(
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (selectedRecordLabel.isBlank()) {
-                                MaterialTheme.colorScheme.outline
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             } else {
                                 MaterialTheme.colorScheme.onSurface
                             },
@@ -987,7 +988,7 @@ private fun FormDescriptionField(
                     Text(
                         text = stringResource(R.string.album_create_desc_placeholder),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 BasicTextField(
@@ -1015,12 +1016,12 @@ private fun FormDescriptionField(
             Text(
                 text = stringResource(R.string.album_create_desc_notes),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "${description.length}/$MAX_ALBUM_DESCRIPTION_LENGTH",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -1059,7 +1060,7 @@ private fun CollectorExtraInfoPill() {
                     Text(
                         text = stringResource(R.string.album_create_bento_subtitle),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -1089,6 +1090,7 @@ private fun FormLabel(
                 text = " *",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clearAndSetSemantics {},
             )
         }
     }
@@ -1184,8 +1186,8 @@ fun SuccessSnackbar(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         painter = painterResource(R.drawable.ic_close),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline,
+                        contentDescription = stringResource(R.string.album_create_cancel_button),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp),
                     )
                 }

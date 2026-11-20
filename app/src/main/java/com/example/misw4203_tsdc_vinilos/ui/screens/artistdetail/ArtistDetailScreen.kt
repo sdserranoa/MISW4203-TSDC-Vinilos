@@ -183,9 +183,11 @@ fun ArtistDetailContent(
                                     painter = painterResource(
                                         if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
                                     ),
-                                    contentDescription = stringResource(
-                                        if (isFavorite) R.string.artist_in_favorites else R.string.artist_add_favorite
-                                    ),
+                                    contentDescription = if (isFavorite) {
+                                        stringResource(R.string.artist_remove_favorite)
+                                    } else {
+                                        stringResource(R.string.artist_save_favorite)
+                                    },
                                     tint = if (isFavorite) Amber else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -711,7 +713,7 @@ private fun ArtistAlbumCard(
                 Text(
                     text = album.genre,
                     style = MaterialTheme.typography.labelSmall,
-                    color = AmberLight,
+                    color = Amber,
                     maxLines = 1
                 )
             }
